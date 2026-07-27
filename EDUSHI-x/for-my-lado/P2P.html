@@ -37,21 +37,18 @@
 </head>
 <body>
 
-  <!-- STEP 1: PASSWORD SCREEN -->
   <div id="stepPassword" class="card">
     <h2>🔒 Protected Portal</h2>
     <input type="password" id="passInput" placeholder="Enter Portal Password" />
     <button class="btn" onclick="verifyPassword()">Unlock</button>
   </div>
 
-  <!-- STEP 2: USER KEY SCREEN -->
   <div id="stepKey" class="card" style="display: none;">
     <h2>🔑 User Verification</h2>
     <input type="password" id="keyInput" placeholder="Enter Your Secret Key" />
     <button class="btn" onclick="verifyKey()">Login</button>
   </div>
 
-  <!-- STEP 3: MAIN DASHBOARD -->
   <div id="stepDashboard" class="card" style="display: none;">
     <h2 id="welcomeText">Welcome</h2>
     <p style="color: #94a3b8; font-size: 14px;">Target User: <b id="targetUserName">-</b></p>
@@ -62,7 +59,6 @@
     <button id="callBtn" class="btn btn-success" onclick="startCall()" disabled>2. Start Voice Call 📞</button>
   </div>
 
-  <!-- STEP 4: CALL OVERLAY (BLOCKS FULL SCREEN) -->
   <div id="callOverlay" class="call-overlay">
     <div style="text-align: center;">
       <div class="caller-avatar" id="avatarIcon">U</div>
@@ -71,13 +67,11 @@
       <div id="callTimer" class="timer">00:00</div>
     </div>
 
-    <!-- Receiver Incoming Actions -->
     <div id="incomingActions" style="display: none; width: 100%; max-width: 300px;">
       <button class="btn btn-success" onclick="acceptCall()">Accept Call 📞</button>
       <button class="btn btn-danger" onclick="declineCall()">Decline ✖</button>
     </div>
 
-    <!-- Active Call Controls -->
     <div id="activeControls">
       <div class="audio-controls">
         <button class="toggle-btn" id="speakerBtn" onclick="toggleAudioOutput()">🔊 Speaker</button>
@@ -87,12 +81,13 @@
   </div>
 
   <script>
-    // 1. SUPABASE CONFIGURATION
-const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co"; // URL me se .coL ko bhi .co kar dein
-const SUPABASE_ANON_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
+    // 1. SUPABASE CONFIGURATION (FIXED)
+    const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
 
-// Correct Syntax: Global 'supabase' object ka use karein client banane ke liye
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Standard global object 'supabase' se client create ho raha hai
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // App State
     let currentUser = null; // { name, key }
     let targetUser = null;  // { name, key }
@@ -159,7 +154,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
       }, 3000);
 
-      // Realtime Calls Listener (Background me bhi work karega jab tab open ho)
+      // Realtime Calls Listener
       supabaseClient.channel("public:calls")
         .on("postgres_changes", { event: "*", schema: "public", table: "calls" }, payload => {
           const row = payload.new;
@@ -196,7 +191,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         document.getElementById("micBtn").innerText = "✓ Microphone Enabled";
         document.getElementById("micBtn").disabled = true;
         
-        // Enable Call Button if target is online
         if (document.getElementById("presenceStatus").classList.contains("online")) {
           document.getElementById("callBtn").disabled = false;
         }
@@ -217,10 +211,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // Wait for ICE Candidates gathering to complete
       pc.onicecandidate = async (e) => {
         if (!e.candidate) {
-          // Push Offer to Supabase
           const { data } = await supabaseClient.from("calls").insert({
             caller_key: currentUser.key,
             receiver_key: targetUser.key,
@@ -247,7 +239,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       document.getElementById("activeControls").style.display = "block";
       document.getElementById("callStatusText").innerText = "Connecting...";
 
-      // Fetch Call Offer Data
       const { data } = await supabaseClient.from("calls").select("offer").eq("id", activeCallId).single();
       await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
 
@@ -256,7 +247,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       pc.onicecandidate = async (e) => {
         if (!e.candidate) {
-          // Send Answer & Update DB status to 'accepted'
           await supabaseClient.from("calls").update({
             status: "accepted",
             answer: pc.localDescription,
@@ -311,7 +301,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       isSpeaker = !isSpeaker;
       document.getElementById("speakerBtn").innerText = isSpeaker ? "🔊 Speaker" : "🎧 Earpiece";
       if (audioTag && audioTag.setSinkId) {
-        // Toggle Audio output device if browser supported
         audioTag.setSinkId(isSpeaker ? "default" : "communications");
       }
     }
