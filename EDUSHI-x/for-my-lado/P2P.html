@@ -6,207 +6,291 @@
   <title>Private P2P Voice Call</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; font-family: sans-serif; margin: 0; padding: 0; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
     body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-    .card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 420px; text-align: center; }
+
+    .card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
     h2 { margin-bottom: 20px; font-size: 22px; color: #38bdf8; }
+
     input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #fff; font-size: 16px; text-align: center; outline: none; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #0284c7; color: white; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-    .btn:disabled { background: #475569; opacity: 0.6; }
+    input:focus { border-color: #38bdf8; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #0284c7; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    .btn:hover { background: #0369a1; }
+    .btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
     .btn-danger { background: #e11d48; }
+    .btn-danger:hover { background: #be123c; }
     .btn-success { background: #16a34a; }
-    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 15px 0; }
+    .btn-success:hover { background: #15803d; }
+
+    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 15px 0; background: #334155; }
     .online { background: #166534; color: #4ade80; }
     .offline { background: #9f1239; color: #fecdd3; }
+
+    /* Fullscreen Call Overlay */
     .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #090d16; z-index: 9999; flex-direction: column; justify-content: space-between; align-items: center; padding: 50px 20px; }
-    .caller-avatar { width: 100px; height: 100px; border-radius: 50%; background: #38bdf8; color: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; margin: 0 auto 15px; }
+    .caller-avatar { width: 100px; height: 100px; border-radius: 50%; background: #38bdf8; color: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; margin-bottom: 15px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+    .timer { font-size: 20px; font-family: monospace; color: #94a3b8; margin-top: 10px; }
+    .audio-controls { display: flex; gap: 15px; margin-top: 20px; }
+    .toggle-btn { background: #334155; color: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; cursor: pointer; font-size: 14px; }
   </style>
 </head>
 <body>
 
+  <!-- STEP 1: PASSWORD SCREEN -->
   <div id="stepPassword" class="card">
     <h2>🔒 Protected Portal</h2>
-    <input type="password" id="passInput" placeholder="Enter Password" />
+    <input type="password" id="passInput" placeholder="Enter Portal Password" />
     <button class="btn" onclick="verifyPassword()">Unlock</button>
   </div>
 
+  <!-- STEP 2: USER KEY SCREEN -->
   <div id="stepKey" class="card" style="display: none;">
-    <h2>🔑 User Key</h2>
-    <input type="password" id="keyInput" placeholder="Enter Key" />
+    <h2>🔑 User Verification</h2>
+    <input type="password" id="keyInput" placeholder="Enter Your Secret Key" />
     <button class="btn" onclick="verifyKey()">Login</button>
   </div>
 
+  <!-- STEP 3: MAIN DASHBOARD -->
   <div id="stepDashboard" class="card" style="display: none;">
     <h2 id="welcomeText">Welcome</h2>
     <p style="color: #94a3b8; font-size: 14px;">Target User: <b id="targetUserName">-</b></p>
-    <div id="presenceStatus" class="status-badge offline">Checking...</div>
-    <button id="micBtn" class="btn" onclick="requestMicPermission()">1. Enable Mic (Mobile Fix)</button>
+    
+    <div id="presenceStatus" class="status-badge offline">Checking Status...</div>
+
+    <button id="micBtn" class="btn" onclick="requestMicPermission()">1. Grant Mic Permission</button>
     <button id="callBtn" class="btn btn-success" onclick="startCall()" disabled>2. Start Voice Call 📞</button>
   </div>
 
+  <!-- STEP 4: CALL OVERLAY (BLOCKS FULL SCREEN) -->
   <div id="callOverlay" class="call-overlay">
     <div style="text-align: center;">
       <div class="caller-avatar" id="avatarIcon">U</div>
       <h3 id="overlayName" style="font-size: 24px;">Calling...</h3>
       <p id="callStatusText" style="color: #38bdf8; margin-top: 5px;">Ringing...</p>
-      <div id="callTimer" style="font-size: 20px; color: #94a3b8; margin-top: 10px;">00:00</div>
+      <div id="callTimer" class="timer">00:00</div>
     </div>
 
+    <!-- Receiver Incoming Actions -->
     <div id="incomingActions" style="display: none; width: 100%; max-width: 300px;">
       <button class="btn btn-success" onclick="acceptCall()">Accept Call 📞</button>
       <button class="btn btn-danger" onclick="declineCall()">Decline ✖</button>
     </div>
 
+    <!-- Active Call Controls -->
     <div id="activeControls">
-      <button class="btn btn-danger" onclick="endCall('ended')">End Call 🚫</button>
+      <div class="audio-controls">
+        <button class="toggle-btn" id="speakerBtn" onclick="toggleAudioOutput()">🔊 Speaker</button>
+      </div>
+      <button class="btn btn-danger" style="margin-top: 20px;" onclick="endCall('ended')">End Call 🚫</button>
     </div>
   </div>
 
-  <audio id="remoteAudio" autoplay playsinline style="display:none;"></audio>
-
   <script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 1. SUPABASE CONFIGURATION
+const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co"; // URL me se .coL ko bhi .co kar dein
+const SUPABASE_ANON_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
 
-    let currentUser = null, targetUser = null, micStream = null, pc = null, activeCallId = null, timerInterval = null, callSeconds = 0;
+// Correct Syntax: Global 'supabase' object ka use karein client banane ke liye
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // App State
+    let currentUser = null; // { name, key }
+    let targetUser = null;  // { name, key }
+    let micStream = null;
+    let pc = null;
+    let activeCallId = null;
+    let timerInterval = null;
+    let callSeconds = 0;
+    let isSpeaker = true;
 
-    const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+    // Metered TURN + STUN Credentials Added
+const rtcConfig = {
+  iceServers: [
+    {
+      urls: "stun:stun.relay.metered.ca:80",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80",
+      username: "f96434d88b8ac9b46c40d4c6",
+      credential: "LO7hTqrMm1TkTxTs",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "f96434d88b8ac9b46c40d4c6",
+      credential: "LO7hTqrMm1TkTxTs",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "f96434d88b8ac9b46c40d4c6",
+      credential: "LO7hTqrMm1TkTxTs",
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "f96434d88b8ac9b46c40d4c6",
+      credential: "LO7hTqrMm1TkTxTs",
+    }
+  ]
+};
 
+    // --- AUTHENTICATION FLOW ---
     function verifyPassword() {
-      if (document.getElementById("passInput").value.trim() === "687314") {
+      const pass = document.getElementById("passInput").value;
+      if (pass === "687314") {
         document.getElementById("stepPassword").style.display = "none";
         document.getElementById("stepKey").style.display = "block";
-      } else alert("Incorrect Password!");
+      } else {
+        alert("Incorrect Password!");
+      }
     }
 
     function verifyKey() {
-      const key = document.getElementById("keyInput").value.trim();
-      if (key === "8948") { currentUser = { name: "priyanshu", key: "8948" }; targetUser = { name: "arya", key: "8931" }; }
-      else if (key === "8931") { currentUser = { name: "arya", key: "8931" }; targetUser = { name: "priyanshu", key: "8948" }; }
-      else return alert("Invalid Key!");
+      const key = document.getElementById("keyInput").value;
+      if (key === "8948") {
+        currentUser = { name: "priyanshu", key: "8948" };
+        targetUser = { name: "arya", key: "8931" };
+      } else if (key === "8931") {
+        currentUser = { name: "arya", key: "8931" };
+        targetUser = { name: "priyanshu", key: "8948" };
+      } else {
+        return alert("Invalid Key!");
+      }
 
       document.getElementById("stepKey").style.display = "none";
       document.getElementById("stepDashboard").style.display = "block";
       document.getElementById("welcomeText").innerText = `User: ${currentUser.name}`;
-      document.getElementById("targetUserName").innerText = `${targetUser.name}`;
+      document.getElementById("targetUserName").innerText = `${targetUser.name} (${targetUser.key})`;
 
       initRealtimeAndPresence();
     }
 
+    // --- PRESENCE & REALTIME LISTENERS ---
     async function initRealtimeAndPresence() {
+      // Send Heartbeat every 5 sec
       setInterval(async () => {
         await supabaseClient.from("active_presence").upsert({ user_key: currentUser.key, last_seen: new Date() });
-      }, 3000);
+      }, 5000);
 
+      // Check Target User Status
       setInterval(async () => {
         const { data } = await supabaseClient.from("active_presence").select("last_seen").eq("user_key", targetUser.key).single();
-        const badge = document.getElementById("presenceStatus");
-        if (data && (new Date() - new Date(data.last_seen)) < 8000) {
-          badge.innerText = `${targetUser.name} ONLINE`; badge.className = "status-badge online";
+        const statusBadge = document.getElementById("presenceStatus");
+        
+        if (data && (new Date() - new Date(data.last_seen)) < 12000) {
+          statusBadge.innerText = `${targetUser.name} is ONLINE`;
+          statusBadge.className = "status-badge online";
           if (micStream) document.getElementById("callBtn").disabled = false;
         } else {
-          badge.innerText = `${targetUser.name} OFFLINE`; badge.className = "status-badge offline";
+          statusBadge.innerText = `${targetUser.name} is OFFLINE`;
+          statusBadge.className = "status-badge offline";
           document.getElementById("callBtn").disabled = true;
         }
-      }, 2000);
+      }, 3000);
 
+      // Realtime Calls Listener (Background me bhi work karega jab tab open ho)
       supabaseClient.channel("public:calls")
-        .on("postgres_changes", { event: "*", schema: "public", table: "calls" }, async payload => {
+        .on("postgres_changes", { event: "*", schema: "public", table: "calls" }, payload => {
           const row = payload.new;
           if (!row) return;
 
+          // Incoming Call Received
           if (row.receiver_key === currentUser.key && row.status === "offered") {
             activeCallId = row.id;
             showIncomingCallOverlay(row);
           }
+
+          // Caller Side: Call Accepted by Receiver
           if (row.caller_key === currentUser.key && row.id === activeCallId && row.status === "accepted") {
-            if (row.answer && pc.signalingState !== "stable") {
-              await pc.setRemoteDescription(new RTCSessionDescription(row.answer));
-              startTimer();
-              document.getElementById("callStatusText").innerText = "Connected";
-            }
+            handleAnswerReceived(row.answer);
           }
-          if (row.id === activeCallId && (row.status === "declined" || row.status === "ended")) {
+
+          // Caller Side: Call Declined by Receiver
+          if (row.caller_key === currentUser.key && row.id === activeCallId && row.status === "declined") {
+            alert("Call was declined by user.");
+            resetCallState();
+          }
+
+          // Any Side: Call Ended
+          if (row.id === activeCallId && row.status === "ended") {
             resetCallState();
           }
         }).subscribe();
     }
 
+    // --- MEDIA & PERMISSION ---
     async function requestMicPermission() {
       try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        document.getElementById("micBtn").innerText = "✓ Mic Active";
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        document.getElementById("micBtn").innerText = "✓ Microphone Enabled";
         document.getElementById("micBtn").disabled = true;
         
-        // Mobile Autoplay unlock audio tag context
-        const audioTag = document.getElementById("remoteAudio");
-        audioTag.play().catch(()=>{});
-        
+        // Enable Call Button if target is online
         if (document.getElementById("presenceStatus").classList.contains("online")) {
           document.getElementById("callBtn").disabled = false;
         }
-      } catch (err) { alert("Microphone Permission Required!"); }
+      } catch (err) {
+        alert("Microphone permission required to place calls!");
+      }
     }
 
-    async function startCall() {
-      setupPeerConnection();
-      document.getElementById("callOverlay").style.display = "flex";
-      document.getElementById("overlayName").innerText = targetUser.name;
-      document.getElementById("callStatusText").innerText = "Calling...";
-      document.getElementById("incomingActions").style.display = "none";
+    // --- CALLING LOGIC (OPTIMIZED & FAST) ---
+async function startCall() {
+  setupPeerConnection();
+  document.getElementById("callOverlay").style.display = "flex";
+  document.getElementById("overlayName").innerText = targetUser.name;
+  document.getElementById("callStatusText").innerText = "Calling...";
+  document.getElementById("incomingActions").style.display = "none";
+  document.getElementById("activeControls").style.display = "block";
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+  // 1. Offer banao aur local description set karo
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
 
-      // FAST CONNECT: Instantly insert offer without waiting full ICE gathering
-      const { data } = await supabaseClient.from("calls").insert({
-        caller_key: currentUser.key,
-        receiver_key: targetUser.key,
-        status: "offered",
-        offer: offer
-      }).select().single();
-      activeCallId = data.id;
-    }
+  // 2. ICE candidate poora hone ka wait KARIYE BINA, TURANT Supabase me Offer push karo (Fast Connection)
+  const { data, error } = await supabaseClient.from("calls").insert({
+    caller_key: currentUser.key,
+    receiver_key: targetUser.key,
+    status: "offered",
+    offer: offer
+  }).select().single();
 
-    function showIncomingCallOverlay() {
-      document.getElementById("callOverlay").style.display = "flex";
-      document.getElementById("overlayName").innerText = targetUser.name;
-      document.getElementById("callStatusText").innerText = "Incoming Call...";
-      document.getElementById("incomingActions").style.display = "block";
-    }
+  if (data) {
+    activeCallId = data.id;
+  }
+  
+  // Backgound me candidates gather hote rahenge
+  pc.onicecandidate = (e) => {
+    // Candidates handle by WebRTC automatically via TURN
+  };
+}
 
-    async function acceptCall() {
-      setupPeerConnection();
-      document.getElementById("incomingActions").style.display = "none";
-      document.getElementById("callStatusText").innerText = "Connecting...";
+async function acceptCall() {
+  setupPeerConnection();
+  document.getElementById("incomingActions").style.display = "none";
+  document.getElementById("activeControls").style.display = "block";
+  document.getElementById("callStatusText").innerText = "Connecting...";
 
-      const { data } = await supabaseClient.from("calls").select("offer").eq("id", activeCallId).single();
-      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+  // 1. Database se offer uthao
+  const { data } = await supabaseClient.from("calls").select("offer").eq("id", activeCallId).single();
+  await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
 
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+  // 2. Answer banao
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
 
-      await supabaseClient.from("calls").update({
-        status: "accepted",
-        answer: answer,
-        started_at: new Date()
-      }).eq("id", activeCallId);
+  // 3. Instant Status Update 'accepted'
+  await supabaseClient.from("calls").update({
+    status: "accepted",
+    answer: answer,
+    started_at: new Date()
+  }).eq("id", activeCallId);
 
+  startTimer();
+  document.getElementById("callStatusText").innerText = "Connected";
+}
+    async function handleAnswerReceived(answer) {
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
       startTimer();
       document.getElementById("callStatusText").innerText = "Connected";
-    }
-
-    function setupPeerConnection() {
-      if (pc) pc.close();
-      pc = new RTCPeerConnection(rtcConfig);
-      micStream.getTracks().forEach(track => pc.addTrack(track, micStream));
-
-      pc.ontrack = (event) => {
-        const audio = document.getElementById("remoteAudio");
-        audio.srcObject = event.streams[0];
-        audio.play().catch(e => console.log("Audio play error", e));
-      };
     }
 
     async function declineCall() {
@@ -214,15 +298,45 @@
       resetCallState();
     }
 
-    async function endCall(reason) {
+    async function endCall(reason = "ended") {
       if (activeCallId) {
-        await supabaseClient.from("calls").update({ status: reason, ended_at: new Date(), duration_seconds: callSeconds }).eq("id", activeCallId);
+        await supabaseClient.from("calls").update({
+          status: reason,
+          ended_at: new Date(),
+          duration_seconds: callSeconds
+        }).eq("id", activeCallId);
       }
       resetCallState();
     }
 
+    // --- WEBRTC CORE HELPERS ---
+    function setupPeerConnection() {
+      if (pc) pc.close();
+      pc = new RTCPeerConnection(rtcConfig);
+
+      micStream.getTracks().forEach(track => pc.addTrack(track, micStream));
+
+      pc.ontrack = (event) => {
+        const remoteAudio = new Audio();
+        remoteAudio.id = "remoteAudioTag";
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play();
+      };
+    }
+
+    function toggleAudioOutput() {
+      const audioTag = document.getElementById("remoteAudioTag");
+      isSpeaker = !isSpeaker;
+      document.getElementById("speakerBtn").innerText = isSpeaker ? "🔊 Speaker" : "🎧 Earpiece";
+      if (audioTag && audioTag.setSinkId) {
+        // Toggle Audio output device if browser supported
+        audioTag.setSinkId(isSpeaker ? "default" : "communications");
+      }
+    }
+
     function startTimer() {
-      callSeconds = 0; clearInterval(timerInterval);
+      callSeconds = 0;
+      clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         callSeconds++;
         const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
@@ -234,7 +348,8 @@
     function resetCallState() {
       if (pc) { pc.close(); pc = null; }
       clearInterval(timerInterval);
-      callSeconds = 0; activeCallId = null;
+      callSeconds = 0;
+      activeCallId = null;
       document.getElementById("callOverlay").style.display = "none";
       document.getElementById("callTimer").innerText = "00:00";
     }
