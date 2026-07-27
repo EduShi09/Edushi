@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduShi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">EduShi</div>
+    <div class="menu" onclick="toggleMenu()">⋮
+        <div class="dropdown" id="dropdownMenu">
+            <a href="#">About Us</a>
+            <a href="#">Contact</a>
+            <!-- <a href="#" onclick="toggleDarkMode()">Dark Mode</a> -->
+            <a href="#">Login</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1>Welcome to EduShi</h1>
+    <p>Your Complete Study Platform</p>
+</section>
+
+<section class="container">
+    <!-- <div class="card"> -->
+        <a href="board.html" style="text-decoration:none; color:white;">
+            <div class="card">
+                <h2>Board Exams</h2>
+                <p>Class 9th - 12th Complete Preparation</p>
+            </div>
+        </a>
+    <!-- </div> -->
+
+    <div class="card">
+        <h2>SSC Foundation</h2>
+        <p>Strong Base for SSC & Government Exams</p>
+    </div>
+
+    <div class="card">
+        <h2>JEE / NEET</h2>
+        <p>Engineering & Medical Entrance Preparation</p>
+    </div>
+</section>
+<footer>
+    © 2026 EduShi | Designed by Priyanshu
+</footer>
+
+<script>
+    function toggleMenu(){
+        var menu = document.getElementById("dropdownMenu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+    
+    // function toggleDarkMode(){
+    //     document.body.classList.toggle("dark");
+    // }
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science - EduShi</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+}
+
+/* NAVBAR */
+nav{
+    padding:15px 20px;
+    background: rgba(0,0,0,0.4);
+}
+
+.logo{
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    padding:40px 20px;
+}
+
+.header h1{
+    font-size:28px;
+}
+
+/* CHAPTER SECTION */
+.container{
+    padding:30px;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap:20px;
+}
+
+.card{
+    background: rgba(255,255,255,0.1);
+    padding:25px;
+    border-radius:15px;
+    transition:0.3s;
+    cursor:pointer;
+}
+
+.card:hover{
+    transform: translateY(-8px);
+    background: rgba(255,255,255,0.2);
+}
+
+/* BACK BUTTON */
+.back{
+    text-align:center;
+    margin:30px 0;
+}
+
+.back a{
+    text-decoration:none;
+    color:white;
+    background:#ff9800;
+    padding:10px 20px;
+    border-radius:8px;
+}
+.chapter-title{
+    font-family: 'Poppins', sans-serif;
+    font-size:22px;
+    font-weight:700;
+    background: linear-gradient(45deg, #ff9800, #ff5722);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">EduShi</div>
+</nav>
+
+<section class="header">
+    <h1>Class 9 - Science</h1>
+    <p>Select Chapter</p>
+</section>
+<!-- Chapter 1 -->
+<section class="container">
+    <a href="chapter1/chapter1.html" style="text-decoration:none; color:inherit;">
+        <div class="card">
+            <h2>Chapter 1</h2>
+            <p class="chapter-title">हमारे आस-पास के पदार्थ </p>
+        </div>
+    </a>
+</section>
+<!-- Chapter 2 -->
+<section class="container">
+    <a href="chapter2/chapter2.html" style="text-decoration:none; color:inherit;">
+        <div class="card">
+            <h2>Chapter 2</h2>
+            <p class="chapter-title">क्या हमारे आस पास के पदार्थ शुद्ध है</p>
+        </div>
+    </a>
+</section>
+<div class="back">
+    <a href="../class9.html">⬅ Back to Class 9</a>
+</div>
+
+</body>
+</html>

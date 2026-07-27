@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 9 - EduShi</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+}
+
+nav{
+    padding:15px 20px;
+    background: rgba(0,0,0,0.4);
+}
+
+.logo{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.header{
+    text-align:center;
+    padding:40px 20px;
+}
+
+.container{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap:20px;
+    padding:30px;
+}
+
+.card{
+    background: rgba(255,255,255,0.1);
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    transition:0.3s;
+    cursor:pointer;
+}
+
+.card:hover{
+    transform: translateY(-10px);
+    background: rgba(255,255,255,0.2);
+}
+
+.back{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.back a{
+    text-decoration:none;
+    color:white;
+    background:#ff9800;
+    padding:10px 20px;
+    border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">EduShi</div>
+</nav>
+
+<section class="header">
+    <h1>Class 9 Subjects</h1>
+</section>
+<!-- Science -->
+<section class="container">
+    <!-- <div class="card">Science</div> -->
+    <a href="Science/science.html" style="text-decoration :none; color: inherit;">
+        <div class="card">Science</div>
+    </a>
+</section>
+<!-- Social Science -->
+<section class="container">
+    <!-- <div class="card">Social Science</div> -->
+    <a href="Social Science/Social Science.html" style="text-decoration :none; color: inherit;">
+        <div class="card">Social Science</div>
+    </a>
+</section>
+<!-- Hindi -->
+<section class="container">
+    <!-- <div class="card">Hindi</div> -->
+    <a href="Hindi/Hindi.html" style="text-decoration :none; color: inherit;">
+        <div class="card">Hindi</div>
+    </a>
+</section>
+<!-- English -->
+<section class="container">
+    <!-- <div class="card">English</div> -->
+    <a href="English/English.html" style="text-decoration :none; color: inherit;">
+        <div class="card">English</div>
+    </a>
+</section>
+<!-- Mathematics -->
+<section class="container">
+    <!-- <div class="card">Mathematics</div> -->
+    <a href="Mathematics/Mathematics.html" style="text-decoration :none; color: inherit;">
+        <div class="card">Mathematics</div>
+    </a>
+</section>
+
+<div class="back">
+    <a href="board.html">⬅ Back</a>
+</div>
+
+</body>
+</html>

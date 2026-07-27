@@ -1,0 +1,122 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+}
+
+/* NAVBAR */
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 20px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    position:sticky;
+    top:0;
+}
+
+.logo{
+    font-size:24px;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+.menu{
+    font-size:28px;
+    cursor:pointer;
+}
+
+/* HERO SECTION */
+.hero{
+    text-align:center;
+    padding:50px 20px;
+}
+
+.hero h1{
+    font-size:32px;
+    margin-bottom:10px;
+}
+
+.hero p{
+    opacity:0.8;
+}
+
+/* GRID SECTION */
+.container{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap:20px;
+    padding:30px;
+}
+
+.card{
+    background: rgba(255,255,255,0.1);
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    transition:0.3s ease;
+    cursor:pointer;
+    backdrop-filter: blur(8px);
+}
+
+.card:hover{
+    transform: translateY(-10px);
+    background: black;
+    color: white;
+}
+
+.card h2{
+    margin-bottom:10px;
+}
+
+/* FOOTER */
+footer{
+    text-align:center;
+    padding:20px;
+    margin-top:30px;
+    background: rgba(0,0,0,0.4);
+    font-size:14px;
+}
+.menu{
+    font-size:28px;
+    cursor:pointer;
+    position:relative;
+}
+
+.dropdown{
+    display:none;
+    position:absolute;
+    right:0;
+    top:40px;
+    background:white;
+    color:black;
+    width:150px;
+    border-radius:8px;
+    overflow:hidden;
+}
+
+.dropdown a{
+    display:block;
+    padding:10px;
+    text-decoration:none;
+    color:black;
+    font-size:14px;
+}
+
+.dropdown a:hover{
+    background:#eee;
+}
+
+footer{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
