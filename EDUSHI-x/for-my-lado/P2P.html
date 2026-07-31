@@ -2,90 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Talky Zone - Share Your Emotions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Talky Zone</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-       *, *::before, *::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box; /* Bounding box ko width ke andar hi rakhta hai */
-}
-
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Screen se bahar scroll rokne ke liye */
-}
-        * {
+        *, *::before, *::after {
             margin: 0; padding: 0; box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         :root {
             --bg-main: #0b0f19;
-            --bg-card: rgba(22, 30, 46, 0.8);
+            --bg-card: #161e2e;
             --primary: #6366f1;
             --gold-owner: #ffd700;
             --purple-pro: #a855f7;
             --text-light: #f3f4f6;
         }
 
-        body {
+        html, body {
+            width: 100%; height: 100%;
             background-color: var(--bg-main);
             color: var(--text-light);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
         }
 
-        /* Responsive Container Fix */
-.app-container {
-    width: 100vw;
-    height: 100dvh; /* Mobile browser bottom bar issue fix karta hai */
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-card);
-    border: none;
-    border-radius: 0; /* Phone me full screen bina radius ke sahi lagta hai */
-}
+        /* Responsive Wrapper */
+        .app-container {
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-main);
+        }
 
-/* Header & Input Padding Fix for Small Screens */
-.chat-header {
-    padding: 12px 14px;
-}
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .app-container {
+                width: 100%;
+                max-width: 850px;
+                height: 92vh;
+                border-radius: 20px;
+                background: var(--bg-card);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            }
+        }
 
-.chat-input-area {
-    padding: 10px 12px;
-}
+        /* HEADER */
+        .chat-header {
+            padding: 12px 16px;
+            background: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
 
-.msg-row {
-    max-width: 88%; /* Mobile me messages ko zyada jagah deta hai */
-}
-
-/* Laptop / Larger Screens Adjustments */
-@media (min-width: 768px) {
-    .app-container {
-        width: 100%;
-        max-width: 850px;
-        height: 92vh;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-}
         .user-profile-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .pfp-avatar {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--primary);
@@ -93,9 +81,9 @@ html, body {
         }
 
         .role-badge {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 10px;
             font-weight: 700;
             text-transform: uppercase;
         }
@@ -106,130 +94,59 @@ html, body {
 
         .header-actions button {
             background: none; border: none; color: #9ca3af;
-            font-size: 18px; margin-left: 12px; cursor: pointer; transition: 0.2s;
+            font-size: 18px; cursor: pointer;
         }
-        .header-actions button:hover { color: #fff; }
 
-        /* CHAT CONTAINER */
+        /* CHAT BOX */
         #chat-box {
             flex: 1;
-            padding: 20px;
+            padding: 16px 12px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
+            background: #0b0f19;
         }
 
-        /* ==========================================
-   IMPROVED MESSAGE READABILITY STYLING
-   ========================================== */
+        /* MESSAGE BUBBLES */
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 88%;
+            word-break: break-word;
+            user-select: none;
+        }
 
-#chat-box {
-    flex: 1;
-    padding: 20px 16px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    background: #0b0f19; /* Deep dark background for rich contrast */
-}
+        .msg-row.sent { align-self: flex-end; }
+        .msg-row.received { align-self: flex-start; }
 
-.msg-row {
-    display: flex;
-    flex-direction: column;
-    max-width: 85%;
-    word-break: break-word;
-}
+        .msg-bubble {
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14.5px;
+            line-height: 1.45;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
 
-.msg-row.sent {
-    align-self: flex-end;
-}
+        .received .msg-bubble {
+            background: #1e293b;
+            color: #f8fafc;
+            border-top-left-radius: 4px;
+        }
 
-.msg-row.received {
-    align-self: flex-start;
-}
+        .sent .msg-bubble {
+            background: #3730a3;
+            color: #ffffff;
+            border-top-right-radius: 4px;
+        }
 
-/* Base Bubble Style */
-.msg-bubble {
-    padding: 12px 16px;
-    border-radius: 16px;
-    position: relative;
-    font-size: 15px; /* Clean readable font size */
-    line-height: 1.5;
-    letter-spacing: 0.3px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Received Message (Others) */
-.received .msg-bubble {
-    background: #1e293b; /* Dark Slate Blue */
-    color: #f8fafc;       /* Crisp Bright White Text */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-top-left-radius: 4px;
-}
-
-/* Sent Message (Your Own) */
-.sent .msg-bubble {
-    background: #3730a3; /* Rich Royal Indigo */
-    color: #ffffff;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-top-right-radius: 4px;
-}
-
-/* Sender Info Header inside Bubble */
-.msg-sender-name {
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #cbd5e1;
-}
-
-/* Timestamp Style */
-.msg-time {
-    font-size: 10px;
-    color: #94a3b8;
-    margin-top: 6px;
-    text-align: right;
-    font-weight: 500;
-}
-
-/* Reply Box Inside Bubble */
-.reply-preview-box {
-    background: rgba(0, 0, 0, 0.35);
-    border-left: 3px solid #6366f1;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    margin-bottom: 8px;
-    color: #e2e8f0;
-}
-
-/* Role Glowing Borders for Visual Separation */
-.style-owner {
-    border-left: 4px solid #ffd700 !important;
-}
-
-.style-pro {
-    border-left: 4px solid #a855f7 !important;
-}
-
-/* Link Visibility Fix */
-.msg-bubble a {
-    color: #38bdf8 !important;
-    font-weight: 600;
-    text-decoration: underline;
-}
-
-        .reply-preview-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-left: 3px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-bottom: 6px;
+        .msg-sender-name {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             color: #cbd5e1;
         }
 
@@ -237,26 +154,27 @@ html, body {
             font-size: 9.5px;
             color: #94a3b8;
             margin-top: 4px;
-            align-self: flex-end;
+            text-align: right;
         }
 
         .delete-btn {
             font-size: 11px;
             color: #ef4444;
             cursor: pointer;
-            margin-left: 8px;
-            display: none;
+            margin-left: auto;
         }
 
-        .msg-bubble:hover .delete-btn { display: inline; }
+        .msg-bubble a { color: #38bdf8 !important; text-decoration: underline; }
 
-        .msg-bubble a { color: #38bdf8; text-decoration: underline; word-break: break-all; }
+        .style-owner { border-left: 3px solid var(--gold-owner) !important; }
+        .style-pro { border-left: 3px solid var(--purple-pro) !important; }
 
         /* INPUT AREA */
         .chat-input-area {
-            padding: 12px 16px;
-            background: rgba(15, 23, 42, 0.95);
+            padding: 10px 12px;
+            background: #0f172a;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
         }
 
         .active-reply-bar {
@@ -265,26 +183,37 @@ html, body {
             align-items: center;
             background: rgba(99, 102, 241, 0.15);
             border-left: 3px solid var(--primary);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             margin-bottom: 8px;
             font-size: 12px;
         }
 
+        .reply-preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--primary);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
         .input-wrapper {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
         .input-wrapper input {
             flex: 1;
-            background: rgba(30, 41, 59, 0.8);
+            background: #1e293b;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 16px;
+            padding: 12px 14px;
             border-radius: 12px;
             color: #fff;
             outline: none;
+            font-size: 14px;
         }
 
         .input-wrapper button {
@@ -295,29 +224,29 @@ html, body {
             height: 44px;
             border-radius: 12px;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
-        /* MODALS & POPUPS */
+        /* MODALS */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(5, 8, 15, 0.92);
-            backdrop-filter: blur(10px);
+            background: rgba(5, 8, 15, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 999;
+            padding: 20px;
         }
 
         .glass-card {
-            background: rgba(22, 30, 46, 0.95);
+            background: #161e2e;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
-            padding: 28px;
-            width: 90%;
-            max-width: 400px;
+            padding: 24px;
+            width: 100%;
+            max-width: 380px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
         .glass-card input {
@@ -329,8 +258,8 @@ html, body {
             border-radius: 10px;
             color: #fff;
             text-align: center;
-            letter-spacing: 4px;
             font-size: 18px;
+            letter-spacing: 4px;
         }
 
         .glass-card button {
@@ -352,7 +281,7 @@ html, body {
     <div id="auth-modal" class="modal-overlay">
         <div class="glass-card">
             <h2><i class="fa-solid fa-comments"></i> Talky Zone</h2>
-            <p style="font-size: 13px; color: #94a3b8; margin-top: 6px;">Enter your 6-digit passcode</p>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Enter your 6-digit key</p>
             <input type="password" id="user-key-input" maxlength="6" placeholder="******">
             <button onclick="authenticateUser()">Unlock Chat</button>
         </div>
@@ -360,26 +289,24 @@ html, body {
 
     <div id="welcome-modal" class="modal-overlay hidden">
         <div class="glass-card">
-            <i class="fa-solid fa-circle-check" style="font-size: 40px; color: #22c55e;"></i>
-            <h3 id="welcome-msg" style="margin-top: 15px;"></h3>
-            <button style="margin-top: 20px;" onclick="closeWelcomeModal()">Let's Chat!</button>
+            <i class="fa-solid fa-circle-check" style="font-size: 36px; color: #22c55e;"></i>
+            <h3 id="welcome-msg" style="margin-top: 12px; font-size: 16px;"></h3>
+            <button style="margin-top: 18px;" onclick="closeWelcomeModal()">Let's Chat!</button>
         </div>
     </div>
 
     <div id="admin-modal" class="modal-overlay hidden">
-        <div class="glass-card" style="max-width: 500px; text-align: left;">
+        <div class="glass-card" style="text-align: left;">
             <h3><i class="fa-solid fa-user-gear"></i> Owner Dashboard</h3>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Add / Manage group_users & Roles</p>
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">Add New User</p>
             
-            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                <input type="text" id="new-user-name" placeholder="Name" style="margin: 0; letter-spacing: normal; font-size: 14px;">
-                <input type="text" id="new-user-key" placeholder="Key (6-Digit)" maxlength="6" style="margin: 0; font-size: 14px;">
-                <select id="new-user-role" style="background: #0f172a; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0 8px;">
-                    <option value="normal">Normal</option>
-                    <option value="pro">Pro</option>
-                </select>
-            </div>
-            <button onclick="addNewUser()" style="margin-bottom: 15px;">Add User</button>
+            <input type="text" id="new-user-name" placeholder="Name" style="margin: 0 0 10px 0; letter-spacing: normal; font-size: 14px; text-align: left;">
+            <input type="text" id="new-user-key" placeholder="6-Digit Key" maxlength="6" style="margin: 0 0 10px 0; font-size: 14px;">
+            <select id="new-user-role" style="width: 100%; padding: 10px; background: #0f172a; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 12px;">
+                <option value="normal">Normal</option>
+                <option value="pro">Pro</option>
+            </select>
+            <button onclick="addNewUser()" style="margin-bottom: 8px;">Add User</button>
             <button onclick="toggleModal('admin-modal', false)" style="background: #475569;">Close</button>
         </div>
     </div>
@@ -389,15 +316,15 @@ html, body {
             <div class="user-profile-info">
                 <img id="my-pfp" class="pfp-avatar" src="" title="Click to change DP" onclick="changePFP()">
                 <div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span id="my-name" style="font-weight: 600; font-size: 15px;">User</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="my-name" style="font-weight: 600; font-size: 14px;">User</span>
                         <span id="my-role-badge" class="role-badge"></span>
                     </div>
                     <span style="font-size: 10px; color: #22c55e;">● Online</span>
                 </div>
             </div>
             <div class="header-actions">
-                <button id="admin-btn" class="hidden" onclick="toggleModal('admin-modal', true)" title="Manage group_users"><i class="fa-solid fa-sliders"></i></button>
+                <button id="admin-btn" class="hidden" onclick="toggleModal('admin-modal', true)"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
 
@@ -405,20 +332,17 @@ html, body {
 
         <div class="chat-input-area">
             <div id="reply-bar" class="active-reply-bar hidden">
-                <span id="reply-text-preview" style="font-size: 12px; color: #cbd5e1;">Replying to message...</span>
+                <span id="reply-text-preview" style="color: #cbd5e1;">Replying...</span>
                 <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="cancelReply()"></i>
             </div>
             <div class="input-wrapper">
-                <input type="text" id="message-input" placeholder="Type a message... (Double click msg to reply)" autocomplete="off">
+                <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
                 <button onclick="sendGroupMessage()"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 1. SUPABASE INITIALIZATION
-        // ==========================================
         const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -426,12 +350,9 @@ html, body {
         let currentUser = null;
         let selectedReply = null;
 
-        // ==========================================
-        // 2. AUTHENTICATION & LOGIN
-        // ==========================================
         async function authenticateUser() {
             const key = document.getElementById("user-key-input").value.trim();
-            if (key.length !== 6) return alert("Enter a valid 6-digit key!");
+            if (key.length !== 6) return alert("Enter valid 6-digit key!");
 
             const { data, error } = await supabaseClient
                 .from('group_users')
@@ -447,7 +368,6 @@ html, body {
             currentUser = data;
             toggleModal('auth-modal', false);
 
-            // Set Header Info
             document.getElementById('my-name').innerText = currentUser.name;
             document.getElementById('my-pfp').src = currentUser.pfp_url;
             
@@ -459,24 +379,19 @@ html, body {
                 document.getElementById('admin-btn').classList.remove('hidden');
             }
 
-            // Show Welcome Modal
             document.getElementById('welcome-msg').innerText = `Welcome ${currentUser.name} to this amazing talky zone! Let's share your emotions.`;
             toggleModal('welcome-modal', true);
 
-            loadGroupgroup_messages();
-            listenRealtimegroup_messages();
+            loadGroupMessages();
+            listenRealtimeMessages();
         }
 
         function closeWelcomeModal() {
             toggleModal('welcome-modal', false);
         }
 
-        // ==========================================
-        // 3. group_messages & REALTIME SUBSCRIPTION
-        // ==========================================
-        async function loadGroupgroup_messages() {
-            // Load LAST 500 group_messages
-            const { data: group_messages, error } = await supabaseClient
+        async function loadGroupMessages() {
+            const { data: messages, error } = await supabaseClient
                 .from('group_messages')
                 .select('*')
                 .order('id', { ascending: false })
@@ -487,12 +402,11 @@ html, body {
             const chatBox = document.getElementById('chat-box');
             chatBox.innerHTML = '';
 
-            // Reverse to show oldest first in UI
-            group_messages.reverse().forEach(msg => renderMessageUI(msg));
+            messages.reverse().forEach(msg => renderMessageUI(msg));
             scrollToBottom();
         }
 
-        function listenRealtimegroup_messages() {
+        function listenRealtimeMessages() {
             supabaseClient
                 .channel('group-chat')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' }, payload => {
@@ -506,9 +420,6 @@ html, body {
                 .subscribe();
         }
 
-        // ==========================================
-        // 4. MESSAGE RENDERING & LINKIFY LOGIC
-        // ==========================================
         function linkifyText(text) {
             const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.(com|in|org|net|io)[^\s]*)/g;
             return text.replace(urlRegex, (url) => {
@@ -542,9 +453,6 @@ html, body {
             chatBox.insertAdjacentHTML('beforeend', msgHTML);
         }
 
-        // ==========================================
-        // 5. SEND & REPLY group_messages
-        // ==========================================
         async function sendGroupMessage() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
@@ -577,14 +485,11 @@ html, body {
         }
 
         async function deleteMessage(id) {
-            if (confirm("Delete this message for everyone?")) {
+            if (confirm("Delete this message?")) {
                 await supabaseClient.from('group_messages').delete().eq('id', id);
             }
         }
 
-        // ==========================================
-        // 6. OWNER / USER MANAGEMENT
-        // ==========================================
         async function addNewUser() {
             const name = document.getElementById('new-user-name').value.trim();
             const key = document.getElementById('new-user-key').value.trim();
@@ -595,13 +500,13 @@ html, body {
             const { error } = await supabaseClient.from('group_users').insert([{ name, user_key: key, role }]);
             if (error) alert("Error adding user: " + error.message);
             else {
-                alert("User added successfully!");
+                alert("User added!");
                 toggleModal('admin-modal', false);
             }
         }
 
         async function changePFP() {
-            const newURL = prompt("Enter new Profile Picture Image URL:", currentUser.pfp_url);
+            const newURL = prompt("Enter new Image URL:", currentUser.pfp_url);
             if (newURL) {
                 currentUser.pfp_url = newURL;
                 document.getElementById('my-pfp').src = newURL;
@@ -609,9 +514,6 @@ html, body {
             }
         }
 
-        // ==========================================
-        // HELPER FUNCTIONS
-        // ==========================================
         function toggleModal(id, show) {
             document.getElementById(id).classList.toggle('hidden', !show);
         }
@@ -621,7 +523,6 @@ html, body {
             box.scrollTop = box.scrollHeight;
         }
 
-        // Enter Key Send Listener
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendGroupMessage();
         });
