@@ -1,358 +1,547 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Private P2P Voice Call</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talky Zone - Share Your Emotions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-    .card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
-    h2 { margin-bottom: 20px; font-size: 22px; color: #38bdf8; }
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: rgba(22, 30, 46, 0.8);
+            --primary: #6366f1;
+            --gold-owner: #ffd700;
+            --purple-pro: #a855f7;
+            --text-light: #f3f4f6;
+        }
 
-    input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #fff; font-size: 16px; text-align: center; outline: none; }
-    input:focus { border-color: #38bdf8; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #0284c7; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-    .btn:hover { background: #0369a1; }
-    .btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
-    .btn-danger { background: #e11d48; }
-    .btn-danger:hover { background: #be123c; }
-    .btn-success { background: #16a34a; }
-    .btn-success:hover { background: #15803d; }
+        /* Responsive Wrapper */
+        .app-container {
+            width: 100%;
+            max-width: 850px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 15px 0; background: #334155; }
-    .online { background: #166534; color: #4ade80; }
-    .offline { background: #9f1239; color: #fecdd3; }
+        @media (min-width: 768px) {
+            .app-container {
+                height: 92vh;
+                border-radius: 24px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            }
+        }
 
-    /* Fullscreen Call Overlay */
-    .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #090d16; z-index: 9999; flex-direction: column; justify-content: space-between; align-items: center; padding: 50px 20px; }
-    .caller-avatar { width: 100px; height: 100px; border-radius: 50%; background: #38bdf8; color: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; margin-bottom: 15px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-    .timer { font-size: 20px; font-family: monospace; color: #94a3b8; margin-top: 10px; }
-    .audio-controls { display: flex; gap: 15px; margin-top: 20px; }
-    .toggle-btn { background: #334155; color: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; cursor: pointer; font-size: 14px; }
-  </style>
+        /* HEADER */
+        .chat-header {
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .user-profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pfp-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            cursor: pointer;
+        }
+
+        .role-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-owner { background: rgba(255, 215, 0, 0.2); color: var(--gold-owner); border: 1px solid var(--gold-owner); }
+        .badge-pro { background: rgba(168, 85, 247, 0.2); color: var(--purple-pro); border: 1px solid var(--purple-pro); }
+        .badge-normal { background: rgba(255, 255, 255, 0.1); color: #9ca3af; }
+
+        .header-actions button {
+            background: none; border: none; color: #9ca3af;
+            font-size: 18px; margin-left: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .header-actions button:hover { color: #fff; }
+
+        /* CHAT CONTAINER */
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* MESSAGE BUBBLES */
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            user-select: none;
+        }
+
+        .msg-row.sent { align-self: flex-end; }
+        .msg-row.received { align-self: flex-start; }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14.5px;
+            line-height: 1.4;
+        }
+
+        /* Role Unique Styles */
+        .style-owner { border-left: 3px solid var(--gold-owner); box-shadow: 0 0 10px rgba(255, 215, 0, 0.15); }
+        .style-pro { border-left: 3px solid var(--purple-pro); box-shadow: 0 0 10px rgba(168, 85, 247, 0.15); }
+
+        .sent .msg-bubble { background: #312e81; color: #e0e7ff; }
+
+        .msg-sender-name {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reply-preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--primary);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        .msg-time {
+            font-size: 9.5px;
+            color: #94a3b8;
+            margin-top: 4px;
+            align-self: flex-end;
+        }
+
+        .delete-btn {
+            font-size: 11px;
+            color: #ef4444;
+            cursor: pointer;
+            margin-left: 8px;
+            display: none;
+        }
+
+        .msg-bubble:hover .delete-btn { display: inline; }
+
+        .msg-bubble a { color: #38bdf8; text-decoration: underline; word-break: break-all; }
+
+        /* INPUT AREA */
+        .chat-input-area {
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .active-reply-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(99, 102, 241, 0.15);
+            border-left: 3px solid var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+        }
+
+        .input-wrapper button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        /* MODALS & POPUPS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 8, 15, 0.92);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .glass-card {
+            background: rgba(22, 30, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 28px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card input {
+            width: 100%;
+            padding: 12px;
+            margin: 16px 0;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 4px;
+            font-size: 18px;
+        }
+
+        .glass-card button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-  <!-- STEP 1: PASSWORD SCREEN -->
-  <div id="stepPassword" class="card">
-    <h2>🔒 Protected Portal</h2>
-    <input type="password" id="passInput" placeholder="Enter Portal Password" />
-    <button class="btn" onclick="verifyPassword()">Unlock</button>
-  </div>
-
-  <!-- STEP 2: USER KEY SCREEN -->
-  <div id="stepKey" class="card" style="display: none;">
-    <h2>🔑 User Verification</h2>
-    <input type="password" id="keyInput" placeholder="Enter Your Secret Key" />
-    <button class="btn" onclick="verifyKey()">Login</button>
-  </div>
-
-  <!-- STEP 3: MAIN DASHBOARD -->
-  <div id="stepDashboard" class="card" style="display: none;">
-    <h2 id="welcomeText">Welcome</h2>
-    <p style="color: #94a3b8; font-size: 14px;">Target User: <b id="targetUserName">-</b></p>
-    
-    <div id="presenceStatus" class="status-badge offline">Checking Status...</div>
-
-    <button id="micBtn" class="btn" onclick="requestMicPermission()">1. Grant Mic Permission</button>
-    <button id="callBtn" class="btn btn-success" onclick="startCall()" disabled>2. Start Voice Call 📞</button>
-  </div>
-
-  <!-- STEP 4: CALL OVERLAY (BLOCKS FULL SCREEN) -->
-  <div id="callOverlay" class="call-overlay">
-    <div style="text-align: center;">
-      <div class="caller-avatar" id="avatarIcon">U</div>
-      <h3 id="overlayName" style="font-size: 24px;">Calling...</h3>
-      <p id="callStatusText" style="color: #38bdf8; margin-top: 5px;">Ringing...</p>
-      <div id="callTimer" class="timer">00:00</div>
+    <div id="auth-modal" class="modal-overlay">
+        <div class="glass-card">
+            <h2><i class="fa-solid fa-comments"></i> Talky Zone</h2>
+            <p style="font-size: 13px; color: #94a3b8; margin-top: 6px;">Enter your 6-digit passcode</p>
+            <input type="password" id="user-key-input" maxlength="6" placeholder="******">
+            <button onclick="authenticateUser()">Unlock Chat</button>
+        </div>
     </div>
 
-    <!-- Receiver Incoming Actions -->
-    <div id="incomingActions" style="display: none; width: 100%; max-width: 300px;">
-      <button class="btn btn-success" onclick="acceptCall()">Accept Call 📞</button>
-      <button class="btn btn-danger" onclick="declineCall()">Decline ✖</button>
+    <div id="welcome-modal" class="modal-overlay hidden">
+        <div class="glass-card">
+            <i class="fa-solid fa-circle-check" style="font-size: 40px; color: #22c55e;"></i>
+            <h3 id="welcome-msg" style="margin-top: 15px;"></h3>
+            <button style="margin-top: 20px;" onclick="closeWelcomeModal()">Let's Chat!</button>
+        </div>
     </div>
 
-    <!-- Active Call Controls -->
-    <div id="activeControls">
-      <div class="audio-controls">
-        <button class="toggle-btn" id="speakerBtn" onclick="toggleAudioOutput()">🔊 Speaker</button>
-      </div>
-      <button class="btn btn-danger" style="margin-top: 20px;" onclick="endCall('ended')">End Call 🚫</button>
+    <div id="admin-modal" class="modal-overlay hidden">
+        <div class="glass-card" style="max-width: 500px; text-align: left;">
+            <h3><i class="fa-solid fa-user-gear"></i> Owner Dashboard</h3>
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Add / Manage Users & Roles</p>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                <input type="text" id="new-user-name" placeholder="Name" style="margin: 0; letter-spacing: normal; font-size: 14px;">
+                <input type="text" id="new-user-key" placeholder="Key (6-Digit)" maxlength="6" style="margin: 0; font-size: 14px;">
+                <select id="new-user-role" style="background: #0f172a; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0 8px;">
+                    <option value="normal">Normal</option>
+                    <option value="pro">Pro</option>
+                </select>
+            </div>
+            <button onclick="addNewUser()" style="margin-bottom: 15px;">Add User</button>
+            <button onclick="toggleModal('admin-modal', false)" style="background: #475569;">Close</button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // 1. SUPABASE CONFIGURATION
-const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co"; // URL me se .coL ko bhi .co kar dein
-const SUPABASE_ANON_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
+    <div class="app-container">
+        <div class="chat-header">
+            <div class="user-profile-info">
+                <img id="my-pfp" class="pfp-avatar" src="" title="Click to change DP" onclick="changePFP()">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="my-name" style="font-weight: 600; font-size: 15px;">User</span>
+                        <span id="my-role-badge" class="role-badge"></span>
+                    </div>
+                    <span style="font-size: 10px; color: #22c55e;">● Online</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="admin-btn" class="hidden" onclick="toggleModal('admin-modal', true)" title="Manage Users"><i class="fa-solid fa-sliders"></i></button>
+            </div>
+        </div>
 
-// Correct Syntax: Global 'supabase' object ka use karein client banane ke liye
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // App State
-    let currentUser = null; // { name, key }
-    let targetUser = null;  // { name, key }
-    let micStream = null;
-    let pc = null;
-    let activeCallId = null;
-    let timerInterval = null;
-    let callSeconds = 0;
-    let isSpeaker = true;
+        <div id="chat-box"></div>
 
-    // Metered TURN + STUN Credentials Added
-const rtcConfig = {
-  iceServers: [
-    {
-      urls: "stun:stun.relay.metered.ca:80",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:80",
-      username: "f96434d88b8ac9b46c40d4c6",
-      credential: "LO7hTqrMm1TkTxTs",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:80?transport=tcp",
-      username: "f96434d88b8ac9b46c40d4c6",
-      credential: "LO7hTqrMm1TkTxTs",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:443",
-      username: "f96434d88b8ac9b46c40d4c6",
-      credential: "LO7hTqrMm1TkTxTs",
-    },
-    {
-      urls: "turns:global.relay.metered.ca:443?transport=tcp",
-      username: "f96434d88b8ac9b46c40d4c6",
-      credential: "LO7hTqrMm1TkTxTs",
-    }
-  ]
-};
+        <div class="chat-input-area">
+            <div id="reply-bar" class="active-reply-bar hidden">
+                <span id="reply-text-preview" style="font-size: 12px; color: #cbd5e1;">Replying to message...</span>
+                <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="cancelReply()"></i>
+            </div>
+            <div class="input-wrapper">
+                <input type="text" id="message-input" placeholder="Type a message... (Double click msg to reply)" autocomplete="off">
+                <button onclick="sendGroupMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
 
-    // --- AUTHENTICATION FLOW ---
-    function verifyPassword() {
-      const pass = document.getElementById("passInput").value;
-      if (pass === "687314") {
-        document.getElementById("stepPassword").style.display = "none";
-        document.getElementById("stepKey").style.display = "block";
-      } else {
-        alert("Incorrect Password!");
-      }
-    }
+    <script>
+        // ==========================================
+        // 1. SUPABASE INITIALIZATION
+        // ==========================================
+        const SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    function verifyKey() {
-      const key = document.getElementById("keyInput").value;
-      if (key === "8948") {
-        currentUser = { name: "priyanshu", key: "8948" };
-        targetUser = { name: "arya", key: "8931" };
-      } else if (key === "8931") {
-        currentUser = { name: "arya", key: "8931" };
-        targetUser = { name: "priyanshu", key: "8948" };
-      } else {
-        return alert("Invalid Key!");
-      }
+        let currentUser = null;
+        let selectedReply = null;
 
-      document.getElementById("stepKey").style.display = "none";
-      document.getElementById("stepDashboard").style.display = "block";
-      document.getElementById("welcomeText").innerText = `User: ${currentUser.name}`;
-      document.getElementById("targetUserName").innerText = `${targetUser.name} (${targetUser.key})`;
+        // ==========================================
+        // 2. AUTHENTICATION & LOGIN
+        // ==========================================
+        async function authenticateUser() {
+            const key = document.getElementById("user-key-input").value.trim();
+            if (key.length !== 6) return alert("Enter a valid 6-digit key!");
 
-      initRealtimeAndPresence();
-    }
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('user_key', key)
+                .single();
 
-    // --- PRESENCE & REALTIME LISTENERS ---
-    async function initRealtimeAndPresence() {
-      // Send Heartbeat every 5 sec
-      setInterval(async () => {
-        await supabaseClient.from("active_presence").upsert({ user_key: currentUser.key, last_seen: new Date() });
-      }, 5000);
+            if (error || !data) {
+                alert("Invalid Access Key!");
+                return;
+            }
 
-      // Check Target User Status
-      setInterval(async () => {
-        const { data } = await supabaseClient.from("active_presence").select("last_seen").eq("user_key", targetUser.key).single();
-        const statusBadge = document.getElementById("presenceStatus");
-        
-        if (data && (new Date() - new Date(data.last_seen)) < 12000) {
-          statusBadge.innerText = `${targetUser.name} is ONLINE`;
-          statusBadge.className = "status-badge online";
-          if (micStream) document.getElementById("callBtn").disabled = false;
-        } else {
-          statusBadge.innerText = `${targetUser.name} is OFFLINE`;
-          statusBadge.className = "status-badge offline";
-          document.getElementById("callBtn").disabled = true;
+            currentUser = data;
+            toggleModal('auth-modal', false);
+
+            // Set Header Info
+            document.getElementById('my-name').innerText = currentUser.name;
+            document.getElementById('my-pfp').src = currentUser.pfp_url;
+            
+            const badge = document.getElementById('my-role-badge');
+            badge.innerText = currentUser.role;
+            badge.className = `role-badge badge-${currentUser.role}`;
+
+            if (currentUser.role === 'owner') {
+                document.getElementById('admin-btn').classList.remove('hidden');
+            }
+
+            // Show Welcome Modal
+            document.getElementById('welcome-msg').innerText = `Welcome ${currentUser.name} to this amazing talky zone! Let's share your emotions.`;
+            toggleModal('welcome-modal', true);
+
+            loadGroupMessages();
+            listenRealtimeMessages();
         }
-      }, 3000);
 
-      // Realtime Calls Listener (Background me bhi work karega jab tab open ho)
-      supabaseClient.channel("public:calls")
-        .on("postgres_changes", { event: "*", schema: "public", table: "calls" }, payload => {
-          const row = payload.new;
-          if (!row) return;
-
-          // Incoming Call Received
-          if (row.receiver_key === currentUser.key && row.status === "offered") {
-            activeCallId = row.id;
-            showIncomingCallOverlay(row);
-          }
-
-          // Caller Side: Call Accepted by Receiver
-          if (row.caller_key === currentUser.key && row.id === activeCallId && row.status === "accepted") {
-            handleAnswerReceived(row.answer);
-          }
-
-          // Caller Side: Call Declined by Receiver
-          if (row.caller_key === currentUser.key && row.id === activeCallId && row.status === "declined") {
-            alert("Call was declined by user.");
-            resetCallState();
-          }
-
-          // Any Side: Call Ended
-          if (row.id === activeCallId && row.status === "ended") {
-            resetCallState();
-          }
-        }).subscribe();
-    }
-
-    // --- MEDIA & PERMISSION ---
-    async function requestMicPermission() {
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        document.getElementById("micBtn").innerText = "✓ Microphone Enabled";
-        document.getElementById("micBtn").disabled = true;
-        
-        // Enable Call Button if target is online
-        if (document.getElementById("presenceStatus").classList.contains("online")) {
-          document.getElementById("callBtn").disabled = false;
+        function closeWelcomeModal() {
+            toggleModal('welcome-modal', false);
         }
-      } catch (err) {
-        alert("Microphone permission required to place calls!");
-      }
-    }
 
-    // --- CALLING LOGIC (OPTIMIZED & FAST) ---
-async function startCall() {
-  setupPeerConnection();
-  document.getElementById("callOverlay").style.display = "flex";
-  document.getElementById("overlayName").innerText = targetUser.name;
-  document.getElementById("callStatusText").innerText = "Calling...";
-  document.getElementById("incomingActions").style.display = "none";
-  document.getElementById("activeControls").style.display = "block";
+        // ==========================================
+        // 3. MESSAGES & REALTIME SUBSCRIPTION
+        // ==========================================
+        async function loadGroupMessages() {
+            // Load LAST 500 messages
+            const { data: messages, error } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('id', { ascending: false })
+                .limit(500);
 
-  // 1. Offer banao aur local description set karo
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
+            if (error) return console.error(error);
 
-  // 2. ICE candidate poora hone ka wait KARIYE BINA, TURANT Supabase me Offer push karo (Fast Connection)
-  const { data, error } = await supabaseClient.from("calls").insert({
-    caller_key: currentUser.key,
-    receiver_key: targetUser.key,
-    status: "offered",
-    offer: offer
-  }).select().single();
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = '';
 
-  if (data) {
-    activeCallId = data.id;
-  }
-  
-  // Backgound me candidates gather hote rahenge
-  pc.onicecandidate = (e) => {
-    // Candidates handle by WebRTC automatically via TURN
-  };
-}
+            // Reverse to show oldest first in UI
+            messages.reverse().forEach(msg => renderMessageUI(msg));
+            scrollToBottom();
+        }
 
-async function acceptCall() {
-  setupPeerConnection();
-  document.getElementById("incomingActions").style.display = "none";
-  document.getElementById("activeControls").style.display = "block";
-  document.getElementById("callStatusText").innerText = "Connecting...";
+        function listenRealtimeMessages() {
+            supabaseClient
+                .channel('group-chat')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                    renderMessageUI(payload.new);
+                    scrollToBottom();
+                })
+                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
+                    const elem = document.getElementById(`msg-${payload.old.id}`);
+                    if (elem) elem.remove();
+                })
+                .subscribe();
+        }
 
-  // 1. Database se offer uthao
-  const { data } = await supabaseClient.from("calls").select("offer").eq("id", activeCallId).single();
-  await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        // ==========================================
+        // 4. MESSAGE RENDERING & LINKIFY LOGIC
+        // ==========================================
+        function linkifyText(text) {
+            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.(com|in|org|net|io)[^\s]*)/g;
+            return text.replace(urlRegex, (url) => {
+                let href = url.startsWith('http') ? url : `https://${url}`;
+                return `<a href="${href}" target="_blank">${url}</a>`;
+            });
+        }
 
-  // 2. Answer banao
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
+        function renderMessageUI(msg) {
+            const chatBox = document.getElementById('chat-box');
+            const isMe = msg.sender_key === currentUser.user_key;
+            
+            let replyHTML = msg.reply_to ? `<div class="reply-preview-box"><b>${msg.reply_to.sender}:</b> ${msg.reply_to.text}</div>` : '';
+            let formattedMsg = linkifyText(msg.message);
+            let timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // 3. Instant Status Update 'accepted'
-  await supabaseClient.from("calls").update({
-    status: "accepted",
-    answer: answer,
-    started_at: new Date()
-  }).eq("id", activeCallId);
+            const msgHTML = `
+                <div class="msg-row ${isMe ? 'sent' : 'received'}" id="msg-${msg.id}">
+                    <div class="msg-bubble style-${msg.sender_role}" ondblclick="triggerReply('${msg.sender_name}', '${msg.message}')">
+                        <div class="msg-sender-name">
+                            <span class="role-badge badge-${msg.sender_role}">${msg.sender_role}</span>
+                            ${msg.sender_name}
+                            ${isMe ? `<i class="fa-solid fa-trash delete-btn" onclick="deleteMessage(${msg.id})"></i>` : ''}
+                        </div>
+                        ${replyHTML}
+                        <div>${formattedMsg}</div>
+                        <div class="msg-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', msgHTML);
+        }
 
-  startTimer();
-  document.getElementById("callStatusText").innerText = "Connected";
-}
-    async function handleAnswerReceived(answer) {
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      startTimer();
-      document.getElementById("callStatusText").innerText = "Connected";
-    }
+        // ==========================================
+        // 5. SEND & REPLY MESSAGES
+        // ==========================================
+        async function sendGroupMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
 
-    async function declineCall() {
-      await supabaseClient.from("calls").update({ status: "declined" }).eq("id", activeCallId);
-      resetCallState();
-    }
+            const payload = {
+                sender_name: currentUser.name,
+                sender_key: currentUser.user_key,
+                sender_role: currentUser.role,
+                sender_pfp: currentUser.pfp_url,
+                message: text,
+                reply_to: selectedReply
+            };
 
-    async function endCall(reason = "ended") {
-      if (activeCallId) {
-        await supabaseClient.from("calls").update({
-          status: reason,
-          ended_at: new Date(),
-          duration_seconds: callSeconds
-        }).eq("id", activeCallId);
-      }
-      resetCallState();
-    }
+            input.value = '';
+            cancelReply();
 
-    // --- WEBRTC CORE HELPERS ---
-    function setupPeerConnection() {
-      if (pc) pc.close();
-      pc = new RTCPeerConnection(rtcConfig);
+            await supabaseClient.from('messages').insert([payload]);
+        }
 
-      micStream.getTracks().forEach(track => pc.addTrack(track, micStream));
+        function triggerReply(sender, text) {
+            selectedReply = { sender, text };
+            document.getElementById('reply-text-preview').innerText = `Replying to ${sender}: "${text}"`;
+            document.getElementById('reply-bar').classList.remove('hidden');
+        }
 
-      pc.ontrack = (event) => {
-        const remoteAudio = new Audio();
-        remoteAudio.id = "remoteAudioTag";
-        remoteAudio.srcObject = event.streams[0];
-        remoteAudio.play();
-      };
-    }
+        function cancelReply() {
+            selectedReply = null;
+            document.getElementById('reply-bar').classList.add('hidden');
+        }
 
-    function toggleAudioOutput() {
-      const audioTag = document.getElementById("remoteAudioTag");
-      isSpeaker = !isSpeaker;
-      document.getElementById("speakerBtn").innerText = isSpeaker ? "🔊 Speaker" : "🎧 Earpiece";
-      if (audioTag && audioTag.setSinkId) {
-        // Toggle Audio output device if browser supported
-        audioTag.setSinkId(isSpeaker ? "default" : "communications");
-      }
-    }
+        async function deleteMessage(id) {
+            if (confirm("Delete this message for everyone?")) {
+                await supabaseClient.from('messages').delete().eq('id', id);
+            }
+        }
 
-    function startTimer() {
-      callSeconds = 0;
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        callSeconds++;
-        const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
-        const secs = String(callSeconds % 60).padStart(2, '0');
-        document.getElementById("callTimer").innerText = `${mins}:${secs}`;
-      }, 1000);
-    }
+        // ==========================================
+        // 6. OWNER / USER MANAGEMENT
+        // ==========================================
+        async function addNewUser() {
+            const name = document.getElementById('new-user-name').value.trim();
+            const key = document.getElementById('new-user-key').value.trim();
+            const role = document.getElementById('new-user-role').value;
 
-    function resetCallState() {
-      if (pc) { pc.close(); pc = null; }
-      clearInterval(timerInterval);
-      callSeconds = 0;
-      activeCallId = null;
-      document.getElementById("callOverlay").style.display = "none";
-      document.getElementById("callTimer").innerText = "00:00";
-    }
-  </script>
+            if (!name || key.length !== 6) return alert("Fill out all fields correctly!");
+
+            const { error } = await supabaseClient.from('users').insert([{ name, user_key: key, role }]);
+            if (error) alert("Error adding user: " + error.message);
+            else {
+                alert("User added successfully!");
+                toggleModal('admin-modal', false);
+            }
+        }
+
+        async function changePFP() {
+            const newURL = prompt("Enter new Profile Picture Image URL:", currentUser.pfp_url);
+            if (newURL) {
+                currentUser.pfp_url = newURL;
+                document.getElementById('my-pfp').src = newURL;
+                await supabaseClient.from('users').update({ pfp_url: newURL }).eq('id', currentUser.id);
+            }
+        }
+
+        // ==========================================
+        // HELPER FUNCTIONS
+        // ==========================================
+        function toggleModal(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
+
+        function scrollToBottom() {
+            const box = document.getElementById('chat-box');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Enter Key Send Listener
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendGroupMessage();
+        });
+    </script>
 </body>
 </html>
