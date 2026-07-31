@@ -286,7 +286,7 @@
     <div id="admin-modal" class="modal-overlay hidden">
         <div class="glass-card" style="max-width: 500px; text-align: left;">
             <h3><i class="fa-solid fa-user-gear"></i> Owner Dashboard</h3>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Add / Manage Users & Roles</p>
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Add / Manage group_users & Roles</p>
             
             <div style="display: flex; gap: 8px; margin-bottom: 15px;">
                 <input type="text" id="new-user-name" placeholder="Name" style="margin: 0; letter-spacing: normal; font-size: 14px;">
@@ -314,7 +314,7 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button id="admin-btn" class="hidden" onclick="toggleModal('admin-modal', true)" title="Manage Users"><i class="fa-solid fa-sliders"></i></button>
+                <button id="admin-btn" class="hidden" onclick="toggleModal('admin-modal', true)" title="Manage group_users"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
 
@@ -351,7 +351,7 @@
             if (key.length !== 6) return alert("Enter a valid 6-digit key!");
 
             const { data, error } = await supabaseClient
-                .from('users')
+                .from('group_users')
                 .select('*')
                 .eq('user_key', key)
                 .single();
@@ -380,8 +380,8 @@
             document.getElementById('welcome-msg').innerText = `Welcome ${currentUser.name} to this amazing talky zone! Let's share your emotions.`;
             toggleModal('welcome-modal', true);
 
-            loadGroupMessages();
-            listenRealtimeMessages();
+            loadGroupgroup_messages();
+            listenRealtimegroup_messages();
         }
 
         function closeWelcomeModal() {
@@ -389,12 +389,12 @@
         }
 
         // ==========================================
-        // 3. MESSAGES & REALTIME SUBSCRIPTION
+        // 3. group_messages & REALTIME SUBSCRIPTION
         // ==========================================
-        async function loadGroupMessages() {
-            // Load LAST 500 messages
-            const { data: messages, error } = await supabaseClient
-                .from('messages')
+        async function loadGroupgroup_messages() {
+            // Load LAST 500 group_messages
+            const { data: group_messages, error } = await supabaseClient
+                .from('group_messages')
                 .select('*')
                 .order('id', { ascending: false })
                 .limit(500);
@@ -405,18 +405,18 @@
             chatBox.innerHTML = '';
 
             // Reverse to show oldest first in UI
-            messages.reverse().forEach(msg => renderMessageUI(msg));
+            group_messages.reverse().forEach(msg => renderMessageUI(msg));
             scrollToBottom();
         }
 
-        function listenRealtimeMessages() {
+        function listenRealtimegroup_messages() {
             supabaseClient
                 .channel('group-chat')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' }, payload => {
                     renderMessageUI(payload.new);
                     scrollToBottom();
                 })
-                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
+                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'group_messages' }, payload => {
                     const elem = document.getElementById(`msg-${payload.old.id}`);
                     if (elem) elem.remove();
                 })
@@ -460,7 +460,7 @@
         }
 
         // ==========================================
-        // 5. SEND & REPLY MESSAGES
+        // 5. SEND & REPLY group_messages
         // ==========================================
         async function sendGroupMessage() {
             const input = document.getElementById('message-input');
@@ -479,7 +479,7 @@
             input.value = '';
             cancelReply();
 
-            await supabaseClient.from('messages').insert([payload]);
+            await supabaseClient.from('group_messages').insert([payload]);
         }
 
         function triggerReply(sender, text) {
@@ -495,7 +495,7 @@
 
         async function deleteMessage(id) {
             if (confirm("Delete this message for everyone?")) {
-                await supabaseClient.from('messages').delete().eq('id', id);
+                await supabaseClient.from('group_messages').delete().eq('id', id);
             }
         }
 
@@ -509,7 +509,7 @@
 
             if (!name || key.length !== 6) return alert("Fill out all fields correctly!");
 
-            const { error } = await supabaseClient.from('users').insert([{ name, user_key: key, role }]);
+            const { error } = await supabaseClient.from('group_users').insert([{ name, user_key: key, role }]);
             if (error) alert("Error adding user: " + error.message);
             else {
                 alert("User added successfully!");
@@ -522,7 +522,7 @@
             if (newURL) {
                 currentUser.pfp_url = newURL;
                 document.getElementById('my-pfp').src = newURL;
-                await supabaseClient.from('users').update({ pfp_url: newURL }).eq('id', currentUser.id);
+                await supabaseClient.from('group_users').update({ pfp_url: newURL }).eq('id', currentUser.id);
             }
         }
 
