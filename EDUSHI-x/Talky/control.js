@@ -60,28 +60,35 @@ function closeWelcomeModal() {
     toggleModal('welcome-modal', false);
 }
 
+// Fast Loading with Limit 50 Messages
 async function loadGroupMessages() {
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) chatBox.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Loading messages...</div>';
+
     const client = getSupabase();
     const { data: messages, error } = await client
         .from('group_messages')
         .select('*')
         .order('id', { ascending: false })
-        .limit(300);
+        .limit(50);
 
     if (error) return console.error(error);
 
-    const chatBox = document.getElementById('chat-box');
     if (chatBox) chatBox.innerHTML = '';
 
     const reversedMsgs = messages.reverse();
 
-    // Show Chat Partner details in Header instead of current user
     const partnerMsg = reversedMsgs.find(m => m.sender_key !== currentUser.user_key);
     if (partnerMsg) {
         updatePartnerHeader(partnerMsg.sender_name, partnerMsg.sender_pfp, partnerMsg.sender_role);
     }
 
-    reversedMsgs.forEach(msg => renderMessageUI(msg));
+    let allHTML = '';
+    reversedMsgs.forEach(msg => {
+        allHTML += getMessageHTMLString(msg);
+    });
+
+    chatBox.innerHTML = allHTML;
     scrollToBottom();
 }
 
@@ -107,7 +114,7 @@ function listenRealtimeMessages() {
             if (newMsg.sender_key !== currentUser.user_key) {
                 updatePartnerHeader(newMsg.sender_name, newMsg.sender_pfp, newMsg.sender_role);
             }
-            renderMessageUI(newMsg);
+            renderSingleMessageUI(newMsg);
             scrollToBottom();
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'group_messages' }, payload => {
@@ -117,18 +124,28 @@ function listenRealtimeMessages() {
         .subscribe();
 }
 
-function renderMessageUI(msg) {
-    const chatBox = document.getElementById('chat-box');
-    if (!chatBox) return;
+// Convert links inside text to clickable <a> tags
+function formatMessageContent(text) {
+    if (!text) return '';
+    if (text.includes('<img') || text.includes('<video') || text.includes('<audio') || text.includes('<a ')) {
+        return text;
+    }
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
+}
 
+function getMessageHTMLString(msg) {
     const isMe = msg.sender_key === currentUser.user_key;
     let replyHTML = msg.reply_to ? `<div class="reply-preview-box"><b>${msg.reply_to.sender}:</b> ${msg.reply_to.text}</div>` : '';
     let timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const safeSender = (msg.sender_name || 'User').replace(/'/g, "");
     const safeText = (msg.message || '').replace(/'/g, "").replace(/"/g, '');
+    const formattedContent = formatMessageContent(msg.message);
 
-    const msgHTML = `
+    return `
         <div class="msg-row ${isMe ? 'sent' : 'received'}" id="msg-${msg.id}">
             <div class="msg-bubble" ondblclick="triggerReply('${safeSender}', '${safeText}')">
                 <div class="msg-sender-header">
@@ -136,12 +153,17 @@ function renderMessageUI(msg) {
                     ${isMe ? `<i class="fa-solid fa-trash-can delete-btn" onclick="deleteMessage(${msg.id})"></i>` : ''}
                 </div>
                 ${replyHTML}
-                <div class="msg-content">${msg.message}</div>
+                <div class="msg-content">${formattedContent}</div>
                 <div class="msg-time">${timeStr}</div>
             </div>
         </div>
     `;
-    chatBox.insertAdjacentHTML('beforeend', msgHTML);
+}
+
+function renderSingleMessageUI(msg) {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
+    chatBox.insertAdjacentHTML('beforeend', getMessageHTMLString(msg));
 }
 
 async function sendGroupMessage() {
@@ -200,7 +222,7 @@ async function addNewUser() {
     }
 }
 
-// Media Lightbox Modal Trigger
+// Media Lightbox
 function openMediaModal(url, type) {
     const container = document.getElementById('media-container');
     if (!container) return;
@@ -222,7 +244,7 @@ function closeMediaModal(e) {
     }
 }
 
-// Attachments Upload
+// Upload Files
 async function uploadAndSendFile(input) {
     const file = input.files[0];
     if (!file) return;
@@ -333,7 +355,7 @@ async function uploadAudioAndSend(blob) {
     }]);
 }
 
-// Emergency Panic Button
+// EMG Button
 function triggerEMG() {
     const emgOverlay = document.getElementById('emg-overlay');
     if (emgOverlay) {
