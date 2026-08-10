@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALKY - Radhe Radhe</title>
+
+    <style>
+        /* ==================== GLOBAL STYLES ==================== */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Poppins:wght@300;400;600;700&family=Rozha+One&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1a0b2e 0%, #080312 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 12px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Glow Effect */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 183, 3, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ==================== TOP NAV ==================== */
+        .top-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: flex-end;
+            padding: 5px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-nav-btn {
+            background: linear-gradient(135deg, #ffb703, #fb8500);
+            color: #0d0614;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(251, 133, 0, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .login-nav-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 20px rgba(251, 133, 0, 0.6);
+            background: linear-gradient(135deg, #ffc300, #ffb703);
+        }
+
+        /* ==================== STYLISH HEADER ==================== */
+        .header-container {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInDown 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .radhe-title {
+            font-family: 'Rozha One', 'Cinzel Decorative', serif;
+            font-size: clamp(2.2rem, 10vw, 4.5rem);
+            background: linear-gradient(180deg, #fff7ad 0%, #ffa200 60%, #ff5500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 25px rgba(255, 170, 0, 0.5);
+            letter-spacing: 2px;
+            line-height: 1.2;
+            position: relative;
+        }
+
+        .radhe-title::after {
+            content: "✨ राधे राधे ✨";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #ffffff 0%, #ffe600 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.3;
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        .sub-tagline {
+            color: #d8b4fe;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            opacity: 0.85;
+            font-weight: 300;
+        }
+
+        /* ==================== RADHA KRISHNA IMAGE CONTAINER ==================== */
+        .hero-card {
+            position: relative;
+            max-width: 420px;
+            width: 100%;
+            border-radius: 20px;
+            padding: 8px;
+            background: linear-gradient(145deg, rgba(255, 183, 3, 0.3), rgba(147, 51, 234, 0.15));
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(251, 133, 0, 0.25);
+            backdrop-filter: blur(10px);
+            animation: zoomIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+
+        .image-wrapper {
+            width: 100%;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .hero-card:hover .image-wrapper img {
+            transform: scale(1.03);
+        }
+
+        /* ==================== MODALS / POPUPS ==================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 3, 18, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            padding: 15px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: linear-gradient(145deg, #1f1235, #110826);
+            border: 1px solid rgba(251, 133, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(251, 133, 0, 0.2);
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: #a78bfa;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #ffffff;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            color: #ffb703;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .modal-subtitle {
+            font-size: 0.8rem;
+            color: #a78bfa;
+            margin-bottom: 20px;
+        }
+
+        /* 6-Digit Input Field */
+        .key-input-box {
+            width: 100%;
+            padding: 12px 8px;
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            text-align: center;
+            background: #090412;
+            border: 2px solid #3b2063;
+            border-radius: 12px;
+            color: #ffb703;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .key-input-box:focus {
+            border-color: #fb8500;
+            box-shadow: 0 0 12px rgba(251, 133, 0, 0.4);
+        }
+
+        /* Links Section */
+        .key-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.78rem;
+            margin-bottom: 20px;
+        }
+
+        .key-links a {
+            color: #c084fc;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .key-links a:hover {
+            color: #ffb703;
+            text-decoration: underline;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffb703, #fb8500);
+            color: #0d0614;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(251, 133, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(251, 133, 0, 0.5);
+        }
+
+        /* ==================== ERROR POPUP ==================== */
+        .error-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin: 0 auto 12px auto;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .error-title {
+            color: #ef4444;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .error-desc {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 18px;
+        }
+
+        .error-close-btn {
+            background: #334155;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .error-close-btn:hover {
+            background: #475569;
+        }
+
+        /* Keyframe Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Mobile Adjustments */
+        @media (min-width: 400px) {
+            .key-links {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .login-nav-btn {
+                padding: 10px 24px;
+                font-size: 0.95rem;
+            }
+            .sub-tagline {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVIGATION BAR -->
+    <div class="top-nav">
+        <button class="login-nav-btn" onclick="openLoginModal()">Login</button>
+    </div>
+
+    <!-- RADHE RADHE HEADER -->
+    <div class="header-container">
+        <h1 class="radhe-title">राधे राधे</h1>
+        <p class="sub-tagline">Welcome to Talky</p>
+    </div>
+
+    <!-- RADHA KRISHNA IMAGE -->
+    <div class="hero-card">
+        <div class="image-wrapper">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPq34GZVz1kzphXoTeJHqJTvmxWuO5EN8_f22BiNe0FA&s=10" alt="Radha Krishna">
+        </div>
+    </div>
+
+    <!-- 1. LOGIN / KEY MODAL -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+            <h2 class="modal-title">Enter Access Key</h2>
+            <p class="modal-subtitle">Please enter your 6-digit passcode</p>
+            
+            <form onsubmit="handleLoginSubmit(event)">
+                <input 
+                    type="text" 
+                    class="key-input-box" 
+                    id="digitKey" 
+                    maxlength="6" 
+                    pattern="\d{6}" 
+                    placeholder="••••••" 
+                    required 
+                    autocomplete="off"
+                    inputmode="numeric"
+                >
+                
+                <div class="key-links">
+                    <a href="#" onclick="alert('Contact admin to get a key!')">I have no key? Get key</a>
+                    <a href="#" onclick="alert('Contact support to reset your key!')">Forgot key?</a>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. WRONG KEY ERROR POPUP (PRE-MADE & HIDDEN) -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal-box">
+            <div class="error-icon">✕</div>
+            <h2 class="error-title">Access Denied</h2>
+            <p class="error-desc">Key is wrong! Please enter a valid 6-digit key.</p>
+            <button class="error-close-btn" onclick="closeErrorModal()">Try Again</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR MODALS -->
+    <script>
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        function showErrorModal() {
+            document.getElementById('errorModal').classList.add('active');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.remove('active');
+            openLoginModal();
+        }
+
+        function handleLoginSubmit(event) {
+            event.preventDefault();
+            const keyInput = document.getElementById('digitKey').value;
+            
+            closeLoginModal();
+
+            // Test Key: "123456"
+            if (keyInput === "123456") {
+                alert("Login Successful! Welcome to TALKY.");
+            } else {
+                showErrorModal();
+            }
+        }
+    </script>
+</body>
+</html>
