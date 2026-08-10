@@ -7,7 +7,7 @@
     
     <!-- Supabase SDK & Icons -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Local CSS File Link -->
     <link rel="stylesheet" href="style.css">
@@ -47,23 +47,24 @@
         </div>
 
         <footer class="chat-input-area">
-            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" novalidate>
+            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" action="javascript:void(0);">
                 <input type="file" id="file-input" class="hidden" accept="image/*,video/*,audio/*" onchange="uploadAndSendFile(this)">
                 
                 <button type="button" class="input-btn" onclick="document.getElementById('file-input').click()" title="Attach File/Image">
                     <i class="fa-solid fa-plus"></i>
                 </button>
 
-                <input type="text" 
+                <!-- type="search" disables keyboard autofill/purse bar on mobile -->
+                <input type="search" 
                        id="message-input" 
-                       name="no_autofill_query_99"
+                       name="search_chat_msg_no_autofill"
                        placeholder="Type a message..." 
                        autocomplete="off" 
                        autocorrect="off" 
                        autocapitalize="off" 
                        spellcheck="false" 
                        data-lpignore="true" 
-                       data-form-type="other">
+                       data-form-type="action">
 
                 <button type="button" id="mic-btn" class="input-btn" onclick="toggleVoiceRecording()" title="Voice Record">
                     <i class="fa-solid fa-microphone"></i>
