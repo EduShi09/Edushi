@@ -5,25 +5,24 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+/* Mobile Viewport Fix - Dynamic Height */
+html, body {
+    height: 100%;
+    overflow: hidden;
     background-color: #0b0f19;
     color: #e2e8f0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
 }
 
 .app-container {
     width: 100%;
     max-width: 480px;
-    height: 100vh;
+    height: 100dvh; /* Dynamic Viewport Height for Mobile Keyboards/Bars */
     background: #111827;
     display: flex;
     flex-direction: column;
     position: relative;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    margin: 0 auto;
 }
 
 .chat-header {
@@ -132,6 +131,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    -webkit-overflow-scrolling: touch; /* Smooth Mobile Scroll */
 }
 
 .msg-row {
@@ -209,10 +209,15 @@ body {
     cursor: pointer;
 }
 
+/* Chat Input Footer Fix */
 .chat-input-area {
     padding: 10px;
     background: #0f172a;
     border-top: 1px solid #1e293b;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    z-index: 20;
 }
 
 .input-wrapper {
