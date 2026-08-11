@@ -1,87 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduShi</title>
-<link rel="stylesheet" href="style.css">
-<style>
-    .lado{
-        background-color: rgba(0, 0, 0 , 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .lado a{
-        color: white;
-        text-decoration: none;
-    }
-    #lado{
-        border: 0.5px black;
-        background-color: greenyellow;
-        height: 75px;
-        width: 100px;
-        border-radius: 15px;
-        cursor: pointer;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Talky Zone</title>
+    
+    <!-- Supabase SDK & Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Local CSS File Link -->
+    <link rel="stylesheet" href="Talky/style.css">
 </head>
-
 <body>
 
-<nav>
-    <div class="logo">EduShi</div>
-    <div class="menu" onclick="toggleMenu()">⋮
-        <div class="dropdown" id="dropdownMenu">
-            <a href="#">About Us</a>
-            <a href="#">Contact</a>
-            <!-- <a href="#" onclick="toggleDarkMode()">Dark Mode</a> -->
-            <a href="#">Login</a>
+    <!-- Emergency Panic Redirect Overlay -->
+    <div id="emg-overlay" class="emg-overlay hidden">
+        <h1>Radhe Radhe</h1>
+    </div>
+
+    <div class="app-container">
+        <header class="chat-header">
+            <div class="user-profile-info">
+                <img id="partner-pfp" src="https://via.placeholder.com/40" class="pfp-avatar" title="Chat Partner">
+                <div class="user-details">
+                    <div class="name-row">
+                        <span id="partner-name">Talky Zone</span>
+                        <span id="partner-role-badge" class="role-badge badge-normal">Active</span>
+                    </div>
+                    <span class="status-indicator"><span class="dot"></span> Online</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="admin-btn" class="icon-btn hidden" onclick="toggleModal('admin-modal', true)" title="Admin Panel">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+                <button id="emg-btn" class="emg-btn" onclick="triggerEMG()" title="Emergency Panic Exit">EMG</button>
+            </div>
+        </header>
+
+        <main id="chat-box" class="chat-body"></main>
+
+        <div id="reply-bar" class="reply-bar hidden">
+            <div id="reply-text-preview" class="reply-text"></div>
+            <button class="close-reply-btn" onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <footer class="chat-input-area">
+            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" action="javascript:void(0);">
+                <input type="file" id="file-input" class="hidden" accept="image/*,video/*,audio/*" onchange="uploadAndSendFile(this)">
+                
+                <button type="button" class="input-btn" onclick="document.getElementById('file-input').click()" title="Attach File/Image">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+
+                <!-- type="search" disables keyboard autofill/purse bar on mobile -->
+                <input type="search" 
+                       id="message-input" 
+                       name="search_chat_msg_no_autofill"
+                       placeholder="Type a message..." 
+                       autocomplete="off" 
+                       autocorrect="off" 
+                       autocapitalize="off" 
+                       spellcheck="false" 
+                       data-lpignore="true" 
+                       data-form-type="action">
+
+                <button type="button" id="mic-btn" class="input-btn" onclick="toggleVoiceRecording()" title="Voice Record">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+
+                <button type="submit" class="input-btn send-btn" title="Send Message">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="glass-card">
+            <div class="modal-icon"><i class="fa-solid fa-lock"></i></div>
+            <h2>Talky Zone</h2>
+            <p>Enter your 6-digit access key to unlock chat</p>
+            <input type="password" id="user-key-input" maxlength="6" placeholder="• • • • • •" autocomplete="off" data-lpignore="true">
+            <button onclick="authenticateUser()">Unlock Chat</button>
         </div>
     </div>
-</nav>
-    <div class="lado">
-        <a href="Talky/login.html"><button id="lado">click me</button></a>
-       
-    </div>
-<section class="hero">
-    <h1>Welcome to EduShi</h1>
-    <p>Your Complete Study Platform</p>
-</section>
 
-<section class="container">
-    <!-- <div class="card"> -->
-        <a href="board.html" style="text-decoration:none; color:white;">
-            <div class="card">
-                <h2>Board Exams</h2>
-                <p>Class 9th - 12th Complete Preparation</p>
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal-overlay hidden">
+        <div class="glass-card">
+            <div class="modal-icon"><i class="fa-solid fa-comments"></i></div>
+            <h3>Welcome!</h3>
+            <p id="welcome-msg">Let's share your emotions.</p>
+            <button onclick="closeWelcomeModal()">Start Chatting</button>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal-overlay hidden">
+        <div class="glass-card">
+            <h3>Add New User</h3>
+            <input type="text" id="new-user-name" placeholder="User Name" autocomplete="off">
+            <input type="text" id="new-user-key" maxlength="6" placeholder="6-digit Key" autocomplete="off">
+            <select id="new-user-role" class="custom-select">
+                <option value="normal">NORMAL</option>
+                <option value="pro">PRO</option>
+                <option value="owner">OWNER</option>
+            </select>
+            <div class="modal-buttons">
+                <button onclick="addNewUser()">Add User</button>
+                <button class="btn-cancel" onclick="toggleModal('admin-modal', false)">Cancel</button>
             </div>
-        </a>
-    <!-- </div> -->
-
-    <div class="card">
-        <h2>SSC Foundation</h2>
-        <p>Strong Base for SSC & Government Exams</p>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>JEE / NEET</h2>
-        <p>Engineering & Medical Entrance Preparation</p>
+    <!-- In-App Media Viewer Lightbox Modal -->
+    <div id="media-modal" class="modal-overlay hidden" onclick="closeMediaModal(event)">
+        <div class="lightbox-content">
+            <span class="lightbox-close" onclick="closeMediaModal(event)">&times;</span>
+            <div id="media-container"></div>
+        </div>
     </div>
-</section>
-<footer>
-    © 2026 EduShi | Designed by Priyanshu
-</footer>
 
-<script>
-    function toggleMenu(){
-        var menu = document.getElementById("dropdownMenu");
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-    
-    // function toggleDarkMode(){
-    //     document.body.classList.toggle("dark");
-    // }
-    </script>
+    <!-- Local Control JS Link -->
+    <script src="Talky/control.js"></script>
 </body>
 </html>
