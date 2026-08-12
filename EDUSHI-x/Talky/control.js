@@ -1,377 +1,376 @@
-// =========================================================
-// TALKY ZONE - CORE CONTROL SCRIPT (LOCAL VERSION)
-// =========================================================
-
-window.SUPABASE_URL = "https://sxrdpcfyvmicjqzzwjqv.supabase.co";
-window.SUPABASE_KEY = "sb_publishable_NapVtLJzaIpxmvrcY4TT7A_D1ll1tfp";
-
-var currentUser = null;
-var selectedReply = null;
-
-function getSupabase() {
-    if (!window.supabaseClient && typeof supabase !== 'undefined') {
-        window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    }
-    return window.supabaseClient;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-// Enter Key to Send Listener
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target && e.target.id === 'message-input') {
-        e.preventDefault();
-        sendGroupMessage();
-    }
-});
-
-async function authenticateUser() {
-    const client = getSupabase();
-    if (!client) return alert("Supabase loading... Please try again in 2 seconds.");
-
-    const key = document.getElementById("user-key-input").value.trim();
-    if (key.length !== 6) return alert("Enter valid 6-digit key!");
-
-    const { data, error } = await client
-        .from('group_users')
-        .select('*')
-        .eq('user_key', key)
-        .single();
-
-    if (error || !data) {
-        alert("Invalid Access Key!");
-        return;
-    }
-
-    currentUser = data;
-    toggleModal('auth-modal', false);
-
-    if (currentUser.role === 'owner') {
-        const adminBtn = document.getElementById('admin-btn');
-        if (adminBtn) adminBtn.classList.remove('hidden');
-    }
-
-    document.getElementById('welcome-msg').innerText = `Welcome ${currentUser.name} to Talky Zone!`;
-    toggleModal('welcome-modal', true);
-
-    loadGroupMessages();
-    listenRealtimeMessages();
+/* Mobile Viewport Fix - Dynamic Height */
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #0b0f19;
+    color: #e2e8f0;
 }
 
-function closeWelcomeModal() {
-    toggleModal('welcome-modal', false);
+.app-container {
+    width: 100%;
+    max-width: 480px;
+    height: 100dvh;
+    background: #111827;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    margin: 0 auto;
 }
 
-// Fast Loading with Limit 50 Messages
-async function loadGroupMessages() {
-    const chatBox = document.getElementById('chat-box');
-    if (chatBox) chatBox.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Loading messages...</div>';
-
-    const client = getSupabase();
-    const { data: messages, error } = await client
-        .from('group_messages')
-        .select('*')
-        .order('id', { ascending: false })
-        .limit(50);
-
-    if (error) return console.error(error);
-
-    if (chatBox) chatBox.innerHTML = '';
-
-    const reversedMsgs = messages.reverse();
-
-    const partnerMsg = reversedMsgs.find(m => m.sender_key !== currentUser.user_key);
-    if (partnerMsg) {
-        updatePartnerHeader(partnerMsg.sender_name, partnerMsg.sender_pfp, partnerMsg.sender_role);
-    }
-
-    let allHTML = '';
-    reversedMsgs.forEach(msg => {
-        allHTML += getMessageHTMLString(msg);
-    });
-
-    chatBox.innerHTML = allHTML;
-    scrollToBottom();
+.chat-header {
+    height: 60px;
+    background: #1e293b;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #334155;
+    z-index: 10;
 }
 
-function updatePartnerHeader(name, pfp, role) {
-    const partnerNameEl = document.getElementById('partner-name');
-    const partnerPfpEl = document.getElementById('partner-pfp');
-    const partnerBadgeEl = document.getElementById('partner-role-badge');
-
-    if (partnerNameEl) partnerNameEl.innerText = name || 'User';
-    if (partnerPfpEl && pfp) partnerPfpEl.src = pfp;
-    if (partnerBadgeEl) {
-        partnerBadgeEl.innerText = role || 'user';
-        partnerBadgeEl.className = `role-badge badge-${role || 'normal'}`;
-    }
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-function listenRealtimeMessages() {
-    const client = getSupabase();
-    client
-        .channel('group-chat')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' }, payload => {
-            const newMsg = payload.new;
-            if (newMsg.sender_key !== currentUser.user_key) {
-                updatePartnerHeader(newMsg.sender_name, newMsg.sender_pfp, newMsg.sender_role);
-            }
-            renderSingleMessageUI(newMsg);
-            scrollToBottom();
-        })
-        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'group_messages' }, payload => {
-            const elem = document.getElementById(`msg-${payload.old.id}`);
-            if (elem) elem.remove();
-        })
-        .subscribe();
+.pfp-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #38bdf8;
 }
 
-// Convert links inside text to clickable <a> tags
-function formatMessageContent(text) {
-    if (!text) return '';
-    if (text.includes('<img') || text.includes('<video') || text.includes('<audio') || text.includes('<a ')) {
-        return text;
-    }
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-    });
+.user-details {
+    display: flex;
+    flex-direction: column;
 }
 
-function getMessageHTMLString(msg) {
-    const isMe = msg.sender_key === currentUser.user_key;
-    let replyHTML = msg.reply_to ? `<div class="reply-preview-box"><b>${msg.reply_to.sender}:</b> ${msg.reply_to.text}</div>` : '';
-    let timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const safeSender = (msg.sender_name || 'User').replace(/'/g, "");
-    const safeText = (msg.message || '').replace(/'/g, "").replace(/"/g, '');
-    const formattedContent = formatMessageContent(msg.message);
-
-    return `
-        <div class="msg-row ${isMe ? 'sent' : 'received'}" id="msg-${msg.id}">
-            <div class="msg-bubble" ondblclick="triggerReply('${safeSender}', '${safeText}')">
-                <div class="msg-sender-header">
-                    <span>${msg.sender_name} <span class="role-badge badge-${msg.sender_role}">${msg.sender_role}</span></span>
-                    ${isMe ? `<i class="fa-solid fa-trash-can delete-btn" onclick="deleteMessage(${msg.id})"></i>` : ''}
-                </div>
-                ${replyHTML}
-                <div class="msg-content">${formattedContent}</div>
-                <div class="msg-time">${timeStr}</div>
-            </div>
-        </div>
-    `;
+.name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-function renderSingleMessageUI(msg) {
-    const chatBox = document.getElementById('chat-box');
-    if (!chatBox) return;
-    chatBox.insertAdjacentHTML('beforeend', getMessageHTMLString(msg));
+#partner-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #f8fafc;
 }
 
-async function sendGroupMessage() {
-    const input = document.getElementById('message-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
-
-    const payload = {
-        sender_name: currentUser.name,
-        sender_key: currentUser.user_key,
-        sender_role: currentUser.role,
-        sender_pfp: currentUser.pfp_url,
-        message: text,
-        reply_to: selectedReply
-    };
-
-    input.value = '';
-    cancelReply();
-
-    const client = getSupabase();
-    await client.from('group_messages').insert([payload]);
+.role-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
-function triggerReply(sender, text) {
-    selectedReply = { sender, text };
-    document.getElementById('reply-text-preview').innerText = `Replying to ${sender}: "${text}"`;
-    document.getElementById('reply-bar').classList.remove('hidden');
+.badge-normal { background: #475569; color: #fff; }
+.badge-pro { background: #0284c7; color: #fff; }
+.badge-owner { background: #eab308; color: #000; }
+
+.status-indicator {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-function cancelReply() {
-    selectedReply = null;
-    document.getElementById('reply-bar').classList.add('hidden');
+.dot {
+    width: 7px;
+    height: 7px;
+    background-color: #94a3b8;
+    border-radius: 50%;
+    display: inline-block;
 }
 
-async function deleteMessage(id) {
-    if (confirm("Delete this message?")) {
-        const client = getSupabase();
-        await client.from('group_messages').delete().eq('id', id);
-    }
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-async function addNewUser() {
-    const name = document.getElementById('new-user-name').value.trim();
-    const key = document.getElementById('new-user-key').value.trim();
-    const role = document.getElementById('new-user-role').value;
-
-    if (!name || key.length !== 6) return alert("Fill out all fields correctly!");
-
-    const client = getSupabase();
-    const { error } = await client.from('group_users').insert([{ name, user_key: key, role }]);
-    if (error) alert("Error adding user: " + error.message);
-    else {
-        alert("User added!");
-        toggleModal('admin-modal', false);
-    }
+.icon-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px;
 }
 
-// Media Lightbox
-function openMediaModal(url, type) {
-    const container = document.getElementById('media-container');
-    if (!container) return;
+.icon-btn:hover { color: #f8fafc; }
 
-    if (type === 'image') {
-        container.innerHTML = `<img src="${url}" />`;
-    } else if (type === 'video') {
-        container.innerHTML = `<video src="${url}" controls autoplay></video>`;
-    }
-
-    toggleModal('media-modal', true);
+.emg-btn {
+    background: #ef4444;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    margin-left: 4px;
 }
 
-function closeMediaModal(e) {
-    if (e.target.id === 'media-modal' || e.target.classList.contains('lightbox-close')) {
-        const container = document.getElementById('media-container');
-        if (container) container.innerHTML = '';
-        toggleModal('media-modal', false);
-    }
+.chat-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
 }
 
-// Upload Files
-async function uploadAndSendFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `files/${fileName}`;
-
-    const client = getSupabase();
-    const { error } = await client.storage
-        .from('chat-attachments')
-        .upload(filePath, file);
-
-    if (error) return alert("File upload failed: " + error.message);
-
-    const { data: publicUrlData } = client.storage
-        .from('chat-attachments')
-        .getPublicUrl(filePath);
-
-    const fileUrl = publicUrlData.publicUrl;
-    let fileHTML = "";
-
-    if (file.type.startsWith('image/')) {
-        fileHTML = `<img src="${fileUrl}" class="chat-media-preview" onclick="openMediaModal('${fileUrl}', 'image')">`;
-    } else if (file.type.startsWith('video/')) {
-        fileHTML = `<video src="${fileUrl}" class="chat-media-preview" onclick="openMediaModal('${fileUrl}', 'video')"></video>`;
-    } else {
-        fileHTML = `<a href="${fileUrl}" target="_blank" style="color:#38bdf8;"><i class="fa-solid fa-file"></i> ${file.name}</a>`;
-    }
-
-    await client.from('group_messages').insert([{
-        sender_name: currentUser.name,
-        sender_key: currentUser.user_key,
-        sender_role: currentUser.role,
-        sender_pfp: currentUser.pfp_url,
-        message: fileHTML,
-        reply_to: selectedReply
-    }]);
-
-    input.value = '';
+.msg-row {
+    display: flex;
+    width: 100%;
 }
 
-// Voice Note Recording
-var mediaRecorder = null;
-var audioChunks = [];
-var isRecording = false;
+.msg-row.sent { justify-content: flex-end; }
+.msg-row.received { justify-content: flex-start; }
 
-async function toggleVoiceRecording() {
-    const micBtn = document.getElementById('mic-btn');
-
-    if (!isRecording) {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                await uploadAudioAndSend(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.start();
-            isRecording = true;
-            if (micBtn) micBtn.style.background = "#ef4444";
-        } catch (e) {
-            alert("Microphone permission required!");
-        }
-    } else {
-        mediaRecorder.stop();
-        isRecording = false;
-        if (micBtn) micBtn.style.background = "#1e293b";
-    }
+.msg-bubble {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    position: relative;
+    word-break: break-word;
 }
 
-async function uploadAudioAndSend(blob) {
-    const fileName = `voice_${Date.now()}.webm`;
-    const filePath = `audio/${fileName}`;
-
-    const client = getSupabase();
-    const { error } = await client.storage
-        .from('chat-attachments')
-        .upload(filePath, blob, { contentType: 'audio/webm' });
-
-    if (error) return alert("Audio upload failed: " + error.message);
-
-    const { data: publicUrlData } = client.storage
-        .from('chat-attachments')
-        .getPublicUrl(filePath);
-
-    const audioUrl = publicUrlData.publicUrl;
-    const audioHTML = `
-        <div class="voice-note-card">
-            <i class="fa-solid fa-microphone-lines" style="color:#38bdf8;"></i>
-            <audio controls src="${audioUrl}"></audio>
-        </div>
-    `;
-
-    await client.from('group_messages').insert([{
-        sender_name: currentUser.name,
-        sender_key: currentUser.user_key,
-        sender_role: currentUser.role,
-        sender_pfp: currentUser.pfp_url,
-        message: audioHTML,
-        reply_to: selectedReply
-    }]);
+.sent .msg-bubble {
+    background: #2563eb;
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
 }
 
-// EMG Button
-function triggerEMG() {
-    const emgOverlay = document.getElementById('emg-overlay');
-    if (emgOverlay) {
-        emgOverlay.classList.remove('hidden');
-    }
-    setTimeout(() => {
-        window.location.href = "https://www.google.com";
-    }, 400);
+.received .msg-bubble {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-bottom-left-radius: 2px;
 }
 
-function toggleModal(id, show) {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('hidden', !show);
+.msg-sender-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin-bottom: 4px;
+    gap: 10px;
+    opacity: 0.9;
 }
 
-function scrollToBottom() {
-    const box = document.getElementById('chat-box');
-    if (box) box.scrollTop = box.scrollHeight;
+.delete-btn {
+    cursor: pointer;
+    color: #fca5a5;
+    font-size: 11px;
+}
+
+.msg-time {
+    font-size: 9px;
+    text-align: right;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+.reply-bar {
+    background: #1e293b;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #334155;
+}
+
+.reply-text {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.close-reply-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+}
+
+/* Chat Input Footer Fix */
+.chat-input-area {
+    padding: 10px;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    z-index: 20;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-wrapper input[type="text"] {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 10px 14px;
+    border-radius: 20px;
+    color: #fff;
+    outline: none;
+    font-size: 14px;
+}
+
+.input-btn {
+    background: #1e293b;
+    border: none;
+    color: #38bdf8;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.send-btn { background: #2563eb; color: #fff; }
+
+.hidden { display: none !important; }
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.glass-card {
+    background: #1e293b;
+    padding: 24px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glass-card input, .glass-card select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #fff;
+    outline: none;
+}
+
+.glass-card button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Hide Autofill suggestion bar overlay */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+}
+
+/* EMG Screen */
+.emg-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: #ffffff !important;
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.emg-overlay h1 {
+    font-size: 3rem;
+    color: #000000;
+    letter-spacing: 2px;
+}
+
+/* Audio Player Box */
+.voice-note-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 6px 10px;
+    border-radius: 12px;
+    max-width: 250px;
+}
+
+.voice-note-card audio {
+    height: 32px;
+    width: 180px;
+}
+
+/* Lightbox Embed Viewer Modal */
+.lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content img, 
+.lightbox-content video {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-size: 32px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.chat-media-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    cursor: pointer;
+    object-fit: cover;
 }
