@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- SEO & Google Search Meta Tags -->
+    <title>Robin Arya Talky - Talky Zone</title>
+    <meta name="description" content="Robin Arya Talky Zone - Private real-time web messaging application.">
+    <meta name="keywords" content="robin arya talky, talky zone, robin arya chat">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph for Social Preview -->
+    <meta property="og:title" content="Robin Arya Talky Zone">
+    <meta property="og:description" content="Private real-time chat application for Robin and Arya.">
+    <meta property="og:type" content="website">
+
+    <!-- Supabase SDK & Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Local CSS File Link -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Emergency Panic Redirect Overlay -->
+    <div id="emg-overlay" class="emg-overlay hidden">
+        <h1>Radhe Radhe</h1>
+    </div>
+
+    <div class="app-container">
+        <header class="chat-header">
+            <div class="user-profile-info">
+                <img id="partner-pfp" src="https://via.placeholder.com/40" class="pfp-avatar" title="Chat Partner">
+                <div class="user-details">
+                    <div class="name-row">
+                        <span id="partner-name">Talky Zone</span>
+                        <span id="partner-role-badge" class="role-badge badge-normal">Active</span>
+                    </div>
+                    <span class="status-indicator">
+                        <span id="partner-status-dot" class="dot"></span> 
+                        <span id="partner-status-text">Checking...</span>
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="admin-btn" class="icon-btn hidden" onclick="toggleModal('admin-modal', true)" title="Admin Panel">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+                <button id="emg-btn" class="emg-btn" onclick="triggerEMG()" title="Emergency Panic Exit">EMG</button>
+            </div>
+        </header>
+
+        <main id="chat-box" class="chat-body"></main>
+
+        <div id="reply-bar" class="reply-bar hidden">
+            <div id="reply-text-preview" class="reply-text"></div>
+            <button class="close-reply-btn" onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <footer class="chat-input-area">
+            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" novalidate>
+                <input type="file" id="file-input" class="hidden" accept="image/*,video/*,audio/*" onchange="uploadAndSendFile(this)">
+                
+                <button type="button" class="input-btn" onclick="document.getElementById('file-input').click()" title="Attach File/Image">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+
+                <input type="text" 
+                       id="message-input" 
+                       name="no_autofill_query_99"
+                       placeholder="Type a message..." 
+                       autocomplete="off" 
+                       autocorrect="off" 
+                       autocapitalize="off" 
+                       spellcheck="false" 
+                       data-lpignore="true" 
+                       data-form-type="other">
+
+                <button type="button" id="mic-btn" class="input-btn" onclick="toggleVoiceRecording()" title="Voice Record">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+
+                <button type="submit" class="input-btn send-btn" title="Send Message">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="glass-card">
+            <div class="modal-icon"><i class="fa-solid fa-lock"></i></div>
+            <h2>Talky Zone</h2>
+            <p>Enter your 6-digit access key to unlock chat</p>
+            <input type="password" id="user-key-input" maxlength="6" placeholder="• • • • • •" autocomplete="off" data-lpignore="true">
+            <button onclick="authenticateUser()">Unlock Chat</button>
+        </div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal-overlay hidden">
+        <div class="glass-card">
+            <div class="modal-icon"><i class="fa-solid fa-comments"></i></div>
+            <h3>Welcome!</h3>
+            <p id="welcome-msg">Let's share your emotions.</p>
+            <button onclick="closeWelcomeModal()">Start Chatting</button>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal-overlay hidden">
+        <div class="glass-card">
+            <h3>Add New User</h3>
+            <input type="text" id="new-user-name" placeholder="User Name" autocomplete="off">
+            <input type="text" id="new-user-key" maxlength="6" placeholder="6-digit Key" autocomplete="off">
+            <select id="new-user-role" class="custom-select">
+                <option value="normal">NORMAL</option>
+                <option value="pro">PRO</option>
+                <option value="owner">OWNER</option>
+            </select>
+            <div class="modal-buttons">
+                <button onclick="addNewUser()">Add User</button>
+                <button class="btn-cancel" onclick="toggleModal('admin-modal', false)">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-App Media Viewer Lightbox Modal -->
+    <div id="media-modal" class="modal-overlay hidden" onclick="closeMediaModal(event)">
+        <div class="lightbox-content">
+            <span class="lightbox-close" onclick="closeMediaModal(event)">&times;</span>
+            <div id="media-container"></div>
+        </div>
+    </div>
+
+    <!-- Local Control JS Link -->
+    <script src="control.js"></script>
+</body>
+</html>
