@@ -190,13 +190,23 @@ function renderMessageUI(msg) {
     if (!chatBox) return;
 
     const isMe = msg.sender_key === currentUser.user_key;
-    let replyHTML = msg.reply_to ? `<div class="reply-preview-box"><b>${msg.reply_to.sender}:</b> ${linkify(msg.reply_to.text)}</div>` : '';
+    
+    // Reply Box HTML formatting fix
+    let replyHTML = '';
+    if (msg.reply_to && msg.reply_to.text) {
+        replyHTML = `
+            <div class="reply-preview-box">
+                <b>${msg.reply_to.sender}</b>
+                <span>${linkify(msg.reply_to.text)}</span>
+            </div>
+        `;
+    }
+
     let timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const safeSender = (msg.sender_name || 'User').replace(/'/g, "");
     const safeText = (msg.message || '').replace(/'/g, "").replace(/"/g, '');
     
-    // Automatically turn links into clickable html
     const formattedMessage = linkify(msg.message);
 
     const msgHTML = `
