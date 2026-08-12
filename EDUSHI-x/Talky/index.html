@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Talky Zone</title>
     
+    <!-- SEO & Google Search Meta Tags -->
+    <title>Robin</title>
+    <meta name="description" content="Robin Arya Talky Zone - Private real-time web messaging application.">
+    <meta name="keywords" content="robin arya talky, talky zone, robin arya chat">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph for Social Preview -->
+    <meta property="og:title" content="Robin Arya Talky Zone">
+    <meta property="og:description" content="Private real-time chat application for Robin and Arya.">
+    <meta property="og:type" content="website">
+
     <!-- Supabase SDK & Icons -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Local CSS File Link -->
     <link rel="stylesheet" href="style.css">
@@ -28,7 +38,10 @@
                         <span id="partner-name">Talky Zone</span>
                         <span id="partner-role-badge" class="role-badge badge-normal">Active</span>
                     </div>
-                    <span class="status-indicator"><span class="dot"></span> Online</span>
+                    <span class="status-indicator">
+                        <span id="partner-status-dot" class="dot"></span> 
+                        <span id="partner-status-text">Checking...</span>
+                    </span>
                 </div>
             </div>
             <div class="header-actions">
@@ -47,24 +60,23 @@
         </div>
 
         <footer class="chat-input-area">
-            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" action="javascript:void(0);">
+            <form class="input-wrapper" onsubmit="event.preventDefault(); sendGroupMessage();" autocomplete="off" novalidate>
                 <input type="file" id="file-input" class="hidden" accept="image/*,video/*,audio/*" onchange="uploadAndSendFile(this)">
                 
                 <button type="button" class="input-btn" onclick="document.getElementById('file-input').click()" title="Attach File/Image">
                     <i class="fa-solid fa-plus"></i>
                 </button>
 
-                <!-- type="search" disables keyboard autofill/purse bar on mobile -->
-                <input type="search" 
+                <input type="text" 
                        id="message-input" 
-                       name="search_chat_msg_no_autofill"
+                       name="no_autofill_query_99"
                        placeholder="Type a message..." 
                        autocomplete="off" 
                        autocorrect="off" 
                        autocapitalize="off" 
                        spellcheck="false" 
                        data-lpignore="true" 
-                       data-form-type="action">
+                       data-form-type="other">
 
                 <button type="button" id="mic-btn" class="input-btn" onclick="toggleVoiceRecording()" title="Voice Record">
                     <i class="fa-solid fa-microphone"></i>
