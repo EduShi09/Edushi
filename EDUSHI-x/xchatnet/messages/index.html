@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Talky — Messages</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container" id="appContainer">
+        
+        <!-- LEFT SIDEBAR: CHAT LIST -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="brand-box">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <span class="brand-title">Talky Chat</span>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search conversations...">
+                </div>
+            </div>
+
+            <div class="chats-list">
+                <!-- Chat Item 1 -->
+                <div class="chat-item active" onclick="openChat('Shiva Prajapati', 'Online')">
+                    <div class="avatar-wrap">
+                        <div class="avatar" style="background:#1e3a8a;">SP</div>
+                        <div class="online-dot"></div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-top-row">
+                            <span class="user-name">Shiva Prajapati</span>
+                            <span class="time-text">10:42 AM</span>
+                        </div>
+                        <div class="last-msg">Hey! Are we meeting today?</div>
+                    </div>
+                    <span class="unread-badge">2</span>
+                </div>
+
+                <!-- Chat Item 2 -->
+                <div class="chat-item" onclick="openChat('Priya', 'Active 5m ago')">
+                    <div class="avatar-wrap">
+                        <div class="avatar" style="background:#831843;">P</div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-top-row">
+                            <span class="user-name">Priya</span>
+                            <span class="time-text">Yesterday</span>
+                        </div>
+                        <div class="last-msg">See you tomorrow then!</div>
+                    </div>
+                </div>
+
+                <!-- Chat Item 3 -->
+                <div class="chat-item" onclick="openChat('Ajay Yadav', 'Online')">
+                    <div class="avatar-wrap">
+                        <div class="avatar" style="background:#065f46;">AY</div>
+                        <div class="online-dot"></div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-top-row">
+                            <span class="user-name">Ajay Yadav</span>
+                            <span class="time-text">2 days ago</span>
+                        </div>
+                        <div class="last-msg">Hello brother, how are you?</div>
+                    </div>
+                </div>
+
+                <!-- Chat Item 4 -->
+                <div class="chat-item" onclick="openChat('Upendra Yadav', 'Offline')">
+                    <div class="avatar-wrap">
+                        <div class="avatar" style="background:#78350f;">UY</div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-top-row">
+                            <span class="user-name">Upendra Yadav</span>
+                            <span class="time-text">1 week ago</span>
+                        </div>
+                        <div class="last-msg">Shared a file with you.</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT MAIN CHAT WINDOW -->
+        <main class="chat-main">
+            <!-- Header -->
+            <div class="main-header">
+                <div class="header-left">
+                    <button class="back-btn" onclick="closeChat()">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="avatar-wrap">
+                        <div class="avatar" id="activeAvatar" style="background:#1e3a8a;">SP</div>
+                    </div>
+                    <div class="active-user-details">
+                        <h3 id="activeUserName">Shiva Prajapati</h3>
+                        <p id="activeUserStatus">Online</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="messages-area" id="msgContainer">
+                <div class="system-date">Today</div>
+
+                <div class="msg-group incoming">
+                    <div class="bubble">
+                        Hey Priyanshu! How's the Talky app development going?
+                        <div class="msg-time">10:40 AM</div>
+                    </div>
+                </div>
+
+                <div class="msg-group outgoing">
+                    <div class="bubble">
+                        Hey Shiva! It's going great. Just working on the custom Talky messaging interface right now!
+                        <div class="msg-time">10:41 AM</div>
+                    </div>
+                </div>
+
+                <div class="msg-group incoming">
+                    <div class="bubble">
+                        Awesome! Make sure it looks completely unique and peaceful.
+                        <div class="msg-time">10:42 AM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Bar (Fixed to prevent mobile browser password/keychain autofill overlay) -->
+            <div class="input-bar">
+                <button class="attach-btn" type="button">
+                    <i class="fa-solid fa-paperclip"></i>
+                </button>
+                
+                <div class="input-wrapper">
+                    <!-- Key attributes preventing mobile OS location/password autofill prompts -->
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="chatInput"
+                        placeholder="Type a message..." 
+                        autocomplete="off" 
+                        autocorrect="on"
+                        spellcheck="false"
+                        name="talky_chat_message_field"
+                        data-lpignore="true"
+                    >
+                </div>
+
+                <button class="emoji-btn" type="button">
+                    <i class="fa-regular fa-face-smile"></i>
+                </button>
+
+                <button class="send-btn" onclick="sendMessage()" type="button">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </main>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
