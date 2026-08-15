@@ -172,6 +172,8 @@ html, body {
     gap: 12px;
     -webkit-overflow-scrolling: touch;
      background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTukWoTyjdQzmo5h_s7qlILabGbzr3k4D3Ko7E0bHHFRg&s=10");
+     background-repeat: no-repeat;
+     background-size: cover;
 }
 
 .msg-row {
